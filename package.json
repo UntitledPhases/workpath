@@ -1,0 +1,28 @@
+{
+  "name": "workpath",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first SOP composer compiler for AI work nodes.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "compile": "tsx scripts/compile.ts",
+    "test": "vitest run",
+    "test:integration": "vitest run tests/integration",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "dev": "echo \"UI starts in Slice 2; run npm run compile for Slice 1.\"",
+    "preview": "echo \"UI starts in Slice 2.\""
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "fast-check": "4.3.0",
+    "tsx": "4.21.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.7"
+  }
+}
+

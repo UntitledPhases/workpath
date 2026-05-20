@@ -1,0 +1,64 @@
+{
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "nodes": [
+    {
+      "id": "intent",
+      "x": 80,
+      "y": 220
+    },
+    {
+      "id": "research",
+      "x": 260,
+      "y": 220
+    },
+    {
+      "id": "plan",
+      "x": 440,
+      "y": 220
+    },
+    {
+      "id": "execute",
+      "x": 620,
+      "y": 220
+    },
+    {
+      "id": "verify",
+      "x": 800,
+      "y": 220
+    },
+    {
+      "id": "return",
+      "x": 980,
+      "y": 220
+    },
+    {
+      "id": "gate_reverse_pass",
+      "x": 620,
+      "y": 80
+    },
+    {
+      "id": "gate_tests",
+      "x": 800,
+      "y": 80
+    },
+    {
+      "id": "artifact_reverse_pass",
+      "x": 500,
+      "y": 80
+    },
+    {
+      "id": "artifact_tests_passed",
+      "x": 680,
+      "y": 80
+    },
+    {
+      "id": "boundary_codex_worker",
+      "x": 620,
+      "y": 360
+    }
+  ]
+}

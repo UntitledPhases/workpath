@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100.0 850.0" role="img">
+  <title>Agentic SDLC readiness graph: PASS</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f8fafc" />
+  <text x="32" y="38" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">PASS</text>
+  <text x="32" y="62" font-family="Arial, sans-serif" font-size="12" fill="#475569">examples\exported-project-sop</text>
+  <path d="M 740.0 140.0 C 840.0 140.0, 840.0 140.0, 940.0 140.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 740.0 250.0 C 840.0 250.0, 840.0 250.0, 940.0 250.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 140.0 140.0 C 240.0 140.0, 240.0 140.0, 340.0 140.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 140.0 C 340.0 140.0, 340.0 690.0, 340.0 690.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 140.0 C 640.0 140.0, 640.0 140.0, 940.0 140.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 250.0 C 340.0 250.0, 340.0 470.0, 340.0 470.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 360.0 C 340.0 360.0, 340.0 140.0, 340.0 140.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 470.0 C 340.0 470.0, 340.0 360.0, 340.0 360.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 690.0 C 340.0 690.0, 340.0 580.0, 340.0 580.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <path d="M 340.0 690.0 C 640.0 690.0, 640.0 250.0, 940.0 250.0" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" opacity="0.72" />
+  <g>
+    <title>task | execute | Execute scoped work</title>
+    <rect x="292.0" y="110.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="340.0" y="145.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">T</text>
+  </g>
+  <g>
+    <title>task | intent | Extract intent</title>
+    <rect x="292.0" y="220.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="340.0" y="255.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">T</text>
+  </g>
+  <g>
+    <title>task | plan | Plan implementation</title>
+    <rect x="292.0" y="330.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="340.0" y="365.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">T</text>
+  </g>
+  <g>
+    <title>task | research | Research current context</title>
+    <rect x="292.0" y="440.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="340.0" y="475.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">T</text>
+  </g>
+  <g>
+    <title>task | return | Return result</title>
+    <rect x="292.0" y="550.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="340.0" y="585.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">T</text>
+  </g>
+  <g>
+    <title>task | verify | Verify evidence</title>
+    <rect x="292.0" y="660.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="340.0" y="695.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">T</text>
+  </g>
+  <g>
+    <title>handoff | boundary_codex_worker | Implement the scoped slice without touching unrelated files.</title>
+    <rect x="92.0" y="110.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="140.0" y="145.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">H</text>
+  </g>
+  <g>
+    <title>review_gate | gate_reverse_pass | reverse_pass passed</title>
+    <polygon points="940.0,104.0 982.0,140.0 940.0,176.0 898.0,140.0" fill="#fef9c3" stroke="#a16207" stroke-width="2" />
+    <text x="940.0" y="145.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">G</text>
+  </g>
+  <g>
+    <title>review_gate | gate_tests | tests passed</title>
+    <polygon points="940.0,214.0 982.0,250.0 940.0,286.0 898.0,250.0" fill="#fef9c3" stroke="#a16207" stroke-width="2" />
+    <text x="940.0" y="255.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">G</text>
+  </g>
+  <g>
+    <title>artifact | artifact_reverse_pass | review_note passed</title>
+    <ellipse cx="740.0" cy="140.0" rx="46" ry="30" fill="#ecfeff" stroke="#0891b2" stroke-width="2" />
+    <text x="740.0" y="145.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">A</text>
+  </g>
+  <g>
+    <title>artifact | artifact_tests_passed | test_result passed</title>
+    <ellipse cx="740.0" cy="250.0" rx="46" ry="30" fill="#ecfeff" stroke="#0891b2" stroke-width="2" />
+    <text x="740.0" y="255.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">A</text>
+  </g>
+  <g>
+    <title>privacy_boundary | privacy_sop_project_loop | single-node SOP export</title>
+    <rect x="92.0" y="110.0" width="96" height="60" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" />
+    <text x="140.0" y="145.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#111827">P</text>
+  </g>
+  <rect x="32" y="792.0" width="12" height="12" fill="#e8f5e9" stroke="#2e7d32" />
+  <text x="50" y="802.0" font-family="Arial, sans-serif" font-size="11" fill="#334155">valid</text>
+  <rect x="98" y="792.0" width="12" height="12" fill="#ffebee" stroke="#c62828" />
+  <text x="116" y="802.0" font-family="Arial, sans-serif" font-size="11" fill="#334155">error</text>
+  <circle cx="176" cy="798.0" r="6" fill="#eef2ff" stroke="#4f46e5" />
+  <text x="190" y="802.0" font-family="Arial, sans-serif" font-size="11" fill="#334155">event</text>
+  <polygon points="252,792.0 264,798.0 252,804.0 240,798.0" fill="#fef9c3" stroke="#a16207" />
+  <text x="272" y="802.0" font-family="Arial, sans-serif" font-size="11" fill="#334155">gate</text>
+</svg>

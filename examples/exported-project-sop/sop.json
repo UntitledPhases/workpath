@@ -1,0 +1,249 @@
+{
+  "schema_version": "1.0",
+  "kind": "single_node_sop",
+  "id": "sop_project_loop",
+  "title": "Project SOP",
+  "description": "Default loop for one AI work node.",
+  "entry_node_id": "intent",
+  "result_node_id": "return",
+  "default_privacy": "internal",
+  "nodes": [
+    {
+      "id": "intent",
+      "title": "Extract intent",
+      "privacy": "internal",
+      "notes": "Clarify goal, constraints, done-state, and risk.",
+      "kind": "step",
+      "module": "intent"
+    },
+    {
+      "id": "research",
+      "title": "Research current context",
+      "privacy": "internal",
+      "kind": "step",
+      "module": "research"
+    },
+    {
+      "id": "plan",
+      "title": "Plan implementation",
+      "privacy": "internal",
+      "kind": "step",
+      "module": "plan"
+    },
+    {
+      "id": "execute",
+      "title": "Execute scoped work",
+      "privacy": "internal",
+      "kind": "step",
+      "module": "execute"
+    },
+    {
+      "id": "verify",
+      "title": "Verify evidence",
+      "privacy": "internal",
+      "kind": "step",
+      "module": "verify"
+    },
+    {
+      "id": "return",
+      "title": "Return result",
+      "privacy": "internal",
+      "kind": "step",
+      "module": "return"
+    },
+    {
+      "id": "gate_reverse_pass",
+      "title": "Reverse pass complete",
+      "privacy": "internal",
+      "kind": "gate",
+      "gate_kind": "reverse_pass",
+      "task_id": "execute",
+      "required_evidence": [
+        "artifact_reverse_pass"
+      ]
+    },
+    {
+      "id": "gate_tests",
+      "title": "Checks pass",
+      "privacy": "internal",
+      "kind": "gate",
+      "gate_kind": "tests",
+      "task_id": "verify",
+      "required_evidence": [
+        "artifact_tests_passed"
+      ]
+    },
+    {
+      "id": "artifact_reverse_pass",
+      "title": "Reverse-pass notes",
+      "privacy": "internal",
+      "kind": "evidence",
+      "artifact_kind": "review_note",
+      "required": true
+    },
+    {
+      "id": "artifact_tests_passed",
+      "title": "Tests passed",
+      "privacy": "internal",
+      "kind": "evidence",
+      "artifact_kind": "test_result",
+      "required": true,
+      "command": "npm test"
+    },
+    {
+      "id": "boundary_codex_worker",
+      "title": "Codex worker handoff",
+      "privacy": "internal",
+      "kind": "boundary",
+      "task_id": "execute",
+      "to": "codex-worker",
+      "objective": "Implement the scoped slice without touching unrelated files.",
+      "allowed_paths": [
+        "src/**",
+        "tests/**",
+        "docs/**"
+      ],
+      "denied_paths": [
+        ".env",
+        ".ssh/**"
+      ],
+      "return_contract": {
+        "required_fields": [
+          "summary",
+          "files_changed",
+          "tests_run",
+          "open_risks"
+        ]
+      },
+      "evidence_required": [
+        "artifact_tests_passed"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_intent_research",
+      "from": "intent",
+      "to": "research",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_research_plan",
+      "from": "research",
+      "to": "plan",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_plan_execute",
+      "from": "plan",
+      "to": "execute",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_execute_verify",
+      "from": "execute",
+      "to": "verify",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_verify_return",
+      "from": "verify",
+      "to": "return",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_reverse_gate_execute",
+      "from": "gate_reverse_pass",
+      "to": "execute",
+      "kind": "gates"
+    },
+    {
+      "id": "edge_tests_gate_verify",
+      "from": "gate_tests",
+      "to": "verify",
+      "kind": "gates"
+    },
+    {
+      "id": "edge_reverse_evidence_gate",
+      "from": "artifact_reverse_pass",
+      "to": "gate_reverse_pass",
+      "kind": "validates"
+    },
+    {
+      "id": "edge_tests_evidence_gate",
+      "from": "artifact_tests_passed",
+      "to": "gate_tests",
+      "kind": "validates"
+    },
+    {
+      "id": "edge_execute_boundary",
+      "from": "execute",
+      "to": "boundary_codex_worker",
+      "kind": "hands_off_to"
+    }
+  ],
+  "canvas": {
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    },
+    "nodes": [
+      {
+        "id": "intent",
+        "x": 80,
+        "y": 220
+      },
+      {
+        "id": "research",
+        "x": 260,
+        "y": 220
+      },
+      {
+        "id": "plan",
+        "x": 440,
+        "y": 220
+      },
+      {
+        "id": "execute",
+        "x": 620,
+        "y": 220
+      },
+      {
+        "id": "verify",
+        "x": 800,
+        "y": 220
+      },
+      {
+        "id": "return",
+        "x": 980,
+        "y": 220
+      },
+      {
+        "id": "gate_reverse_pass",
+        "x": 620,
+        "y": 80
+      },
+      {
+        "id": "gate_tests",
+        "x": 800,
+        "y": 80
+      },
+      {
+        "id": "artifact_reverse_pass",
+        "x": 500,
+        "y": 80
+      },
+      {
+        "id": "artifact_tests_passed",
+        "x": 680,
+        "y": 80
+      },
+      {
+        "id": "boundary_codex_worker",
+        "x": 620,
+        "y": 360
+      }
+    ]
+  }
+}
