@@ -11,15 +11,18 @@ author sop.json -> compile Ideate JSONL bundle -> validate with agentic-sdlc
 This repository is local-only until the product is complete enough to publish.
 There is no remote, no deployment config, and no runtime agent execution.
 
-## Slice 1
+## Current Slice
 
-Slice 1 is compiler-first and has no React canvas yet.
+Workpath now has the compiler-first path plus a read-only React Flow canvas
+over the native seed SOP.
 
 ```powershell
 npm install
 npm run compile
 npm run typecheck
 npm test
+npm run build
+npm run dev
 agentic-sdlc validate examples\exported-project-sop
 agentic-sdlc visualize examples\exported-project-sop --format svg --output examples\exported-project-sop\workflow.svg
 ```
@@ -27,6 +30,9 @@ agentic-sdlc visualize examples\exported-project-sop --format svg --output examp
 The compiler reads [examples/seed-project-sop.json](examples/seed-project-sop.json),
 emits [examples/exported-project-sop](examples/exported-project-sop), and proves
 that the output is accepted by Ideate.
+
+The canvas also reads [examples/seed-project-sop.json](examples/seed-project-sop.json)
+directly. The compiled bundle is an output artifact, not the authoring source.
 
 ## Boundary
 
@@ -36,8 +42,8 @@ that graph into validated workflow records.
 
 ## Slice Plan
 
-- Slice 1: compiler, schemas, seed SOP, exported example, Ideate validation.
-- Slice 2: read-only React Flow canvas over the seed SOP.
+- Slice 1 complete: compiler, schemas, seed SOP, exported example, Ideate validation.
+- Slice 2 complete: read-only React Flow canvas over the seed SOP.
 - Slice 3: editing, ZIP export, and browser-to-Ideate validation loop.
 
 ## Local-Only Discipline

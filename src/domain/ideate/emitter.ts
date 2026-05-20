@@ -24,8 +24,8 @@ export async function writeIdeateBundle(
   source?: SopGraph,
   options: EmitOptions = {}
 ) {
-  await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
+  await removeOwnedOutputFiles(outDir, Boolean(options.includeSource));
   const files = bundleToJsonlFiles(bundle);
   for (const [fileName, contents] of Object.entries(files)) {
     await writeFile(join(outDir, fileName), contents, "utf8");
@@ -49,6 +49,11 @@ export async function writeIdeateBundle(
       "utf8"
     );
   }
+}
+
+async function removeOwnedOutputFiles(outDir: string, includeSource: boolean): Promise<void> {
+  const ownedFiles = includeSource ? [...IDEATE_FILES, "sop.json", "canvas.json", "workpath.json"] : IDEATE_FILES;
+  await Promise.all(ownedFiles.map((fileName) => rm(join(outDir, fileName), { force: true })));
 }
 
 export function recordsToJsonl(records: unknown[]): string {

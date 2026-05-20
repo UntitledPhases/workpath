@@ -1,0 +1,58 @@
+import { type SopGraph, type SopNode } from "../../domain/sop/index.js";
+
+interface SopInspectorProps {
+  sop: SopGraph;
+  node?: SopNode;
+}
+
+export function SopInspector({ sop, node }: SopInspectorProps) {
+  if (!node) {
+    return <aside className="inspector" />;
+  }
+
+  return (
+    <aside className="inspector" data-testid="sop-inspector">
+      <div className="inspector-header">
+        <span>{node.kind}</span>
+        <h2>{node.title}</h2>
+      </div>
+      <dl>
+        <Meta label="id" value={node.id} />
+        <Meta label="privacy" value={"privacy" in node && node.privacy ? node.privacy : sop.default_privacy} />
+        {node.kind === "step" ? <Meta label="module" value={node.module} /> : null}
+        {node.kind === "gate" ? (
+          <>
+            <Meta label="gate" value={node.gate_kind} />
+            <Meta label="task" value={node.task_id} />
+            <Meta label="evidence" value={node.required_evidence.join(", ")} />
+          </>
+        ) : null}
+        {node.kind === "evidence" ? (
+          <>
+            <Meta label="artifact" value={node.artifact_kind} />
+            <Meta label="required" value={String(node.required)} />
+            {node.command ? <Meta label="command" value={node.command} /> : null}
+          </>
+        ) : null}
+        {node.kind === "boundary" ? (
+          <>
+            <Meta label="task" value={node.task_id} />
+            <Meta label="to" value={node.to} />
+            <Meta label="paths" value={node.allowed_paths.join(", ")} />
+            <Meta label="evidence" value={node.evidence_required.join(", ")} />
+          </>
+        ) : null}
+      </dl>
+    </aside>
+  );
+}
+
+function Meta({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="meta-row">
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  );
+}
+
