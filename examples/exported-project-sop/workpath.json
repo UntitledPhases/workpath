@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0",
+  "kind": "workpath_export_manifest",
+  "sop_id": "sop_project_loop",
+  "export_mode": "specification",
+  "compiler": "workpath-compiler@0.1.0"
+}

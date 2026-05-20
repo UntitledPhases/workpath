@@ -11,9 +11,13 @@ const raw = await readFile(seedPath, "utf8");
 const sop = sopGraphSchema.parse(JSON.parse(raw));
 const bundle = compileToIdeateBundle(sop, {
   createdAt: "2026-05-20T20:00:00.000Z",
-  compilerVersion: "workpath-compiler@0.1.0"
+  compilerVersion: "workpath-compiler@0.1.0",
+  exportMode: "specification"
 });
 
-await writeIdeateBundle(bundle, outDir, sop, { includeSource: true });
+await writeIdeateBundle(bundle, outDir, sop, {
+  includeSource: true,
+  exportMode: "specification",
+  compilerVersion: "workpath-compiler@0.1.0"
+});
 console.log(`Compiled ${seedPath} -> ${outDir}`);
-

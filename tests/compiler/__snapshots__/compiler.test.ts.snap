@@ -18,6 +18,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "required": true,
       "schema_version": "1.0",
       "status": "passed",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_kind": "test_result",
@@ -35,6 +36,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "required": true,
       "schema_version": "1.0",
       "status": "passed",
+      "workpath_export_mode": "specification",
     },
   ],
   "events.jsonl": [],
@@ -75,6 +77,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "task_id": "execute",
       "to": "codex-worker",
+      "workpath_export_mode": "specification",
     },
   ],
   "memory_candidates.jsonl": [],
@@ -94,6 +97,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       },
       "schema_version": "1.0",
       "scope": "single-node SOP export",
+      "workpath_export_mode": "specification",
     },
   ],
   "returns.jsonl": [],
@@ -119,6 +123,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "passed",
       "task_id": "execute",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_type": "review_gate",
@@ -141,6 +146,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "passed",
       "task_id": "verify",
+      "workpath_export_mode": "specification",
     },
   ],
   "tasks.jsonl": [
@@ -161,6 +167,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "planned",
       "title": "Extract intent",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_type": "task",
@@ -181,6 +188,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "planned",
       "title": "Research current context",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_type": "task",
@@ -201,6 +209,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "planned",
       "title": "Plan implementation",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_type": "task",
@@ -223,6 +232,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "planned",
       "title": "Execute scoped work",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_type": "task",
@@ -245,6 +255,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "planned",
       "title": "Verify evidence",
+      "workpath_export_mode": "specification",
     },
     {
       "artifact_type": "task",
@@ -265,6 +276,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "schema_version": "1.0",
       "status": "planned",
       "title": "Return result",
+      "workpath_export_mode": "specification",
     },
   ],
 }

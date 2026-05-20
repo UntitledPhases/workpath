@@ -36,12 +36,14 @@ export type IdeateBundle = Record<IdeateFileName, IdeateRecord[]>;
 export interface CompileOptions {
   createdAt?: string;
   compilerVersion?: string;
+  exportMode?: "specification";
 }
 
 interface CompileContext {
   sop: SopGraph;
   createdAt: string;
   compilerVersion: string;
+  exportMode: "specification";
 }
 
 export function compileToIdeateBundle(input: unknown, options: CompileOptions = {}): IdeateBundle {
@@ -49,7 +51,8 @@ export function compileToIdeateBundle(input: unknown, options: CompileOptions = 
   const context: CompileContext = {
     sop,
     createdAt: options.createdAt ?? new Date().toISOString(),
-    compilerVersion: options.compilerVersion ?? "workpath-compiler@0.1.0"
+    compilerVersion: options.compilerVersion ?? "workpath-compiler@0.1.0",
+    exportMode: options.exportMode ?? "specification"
   };
   const bundle = emptyBundle();
   const steps = sop.nodes.filter((node): node is StepNode => node.kind === "step");
@@ -185,6 +188,7 @@ function baseRecord(
       sop_id: context.sop.id,
       source_type: sourceType
     },
+    workpath_export_mode: context.exportMode,
     privacy_classification: privacy ?? context.sop.default_privacy
   };
 }
@@ -192,4 +196,3 @@ function baseRecord(
 function nodeById(sop: SopGraph, id: string) {
   return sop.nodes.find((node) => node.id === id);
 }
-

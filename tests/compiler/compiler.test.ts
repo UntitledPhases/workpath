@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { compileToIdeateBundle, bundleToJsonlFiles } from "../../src/domain/ideate/index.js";
+import {
+  compileToIdeateBundle,
+  bundleToJsonlFiles,
+  writeIdeateBundle
+} from "../../src/domain/ideate/index.js";
 import { readSeedSop } from "../helpers.js";
 
 const OPTIONS = {
   createdAt: "2026-05-20T20:00:00.000Z",
-  compilerVersion: "workpath-compiler@0.1.0"
+  compilerVersion: "workpath-compiler@0.1.0",
+  exportMode: "specification" as const
 };
 
 describe("SOP to Ideate compiler", () => {
@@ -32,6 +40,19 @@ describe("SOP to Ideate compiler", () => {
       depends_on: ["plan"],
       review_gate_ids: ["gate_reverse_pass"]
     });
+  });
+
+  it("marks every Ideate record as a Workpath specification export", async () => {
+    const sop = await readSeedSop();
+    const bundle = compileToIdeateBundle(sop, OPTIONS);
+
+    for (const records of Object.values(bundle)) {
+      for (const record of records) {
+        expect(record).toMatchObject({
+          workpath_export_mode: "specification"
+        });
+      }
+    }
   });
 
   it("maps validates edges into review gate evidence", async () => {
@@ -63,5 +84,29 @@ describe("SOP to Ideate compiler", () => {
 
     expect(bundle).toMatchSnapshot();
   });
-});
 
+  it("writes a Workpath export manifest beside source files", async () => {
+    const sop = await readSeedSop();
+    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const outDir = await mkdtemp(join(tmpdir(), "workpath-emitter-"));
+
+    try {
+      await writeIdeateBundle(bundle, outDir, sop, {
+        includeSource: true,
+        exportMode: "specification",
+        compilerVersion: OPTIONS.compilerVersion
+      });
+      const manifest = JSON.parse(await readFile(join(outDir, "workpath.json"), "utf8")) as {
+        export_mode: string;
+        sop_id: string;
+      };
+
+      expect(manifest).toMatchObject({
+        export_mode: "specification",
+        sop_id: "sop_project_loop"
+      });
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  });
+});
