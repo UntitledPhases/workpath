@@ -21,7 +21,7 @@ const nodeTypes = {
 interface SopCanvasProps {
   sop: SopGraph;
   selectedNodeId?: string;
-  onSelectNode: (nodeId: string) => void;
+  onSelectNode: (nodeId?: string) => void;
 }
 
 export function SopCanvas(props: SopCanvasProps) {
@@ -46,6 +46,7 @@ function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
         edges={edges}
         nodeTypes={nodeTypes}
         onNodeClick={handleNodeClick}
+        onPaneClick={() => onSelectNode(undefined)}
         nodesDraggable={false}
         nodesConnectable={false}
         edgesFocusable={false}

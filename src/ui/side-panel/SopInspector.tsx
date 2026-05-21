@@ -7,7 +7,7 @@ interface SopInspectorProps {
 
 export function SopInspector({ sop, node }: SopInspectorProps) {
   if (!node) {
-    return <aside className="inspector" />;
+    return <aside className="inspector" data-testid="sop-inspector" aria-label="Inspector" />;
   }
 
   return (
@@ -19,6 +19,7 @@ export function SopInspector({ sop, node }: SopInspectorProps) {
       <dl>
         <Meta label="id" value={node.id} />
         <Meta label="privacy" value={"privacy" in node && node.privacy ? node.privacy : sop.default_privacy} />
+        {node.notes ? <Meta label="notes" value={node.notes} /> : null}
         {node.kind === "step" ? <Meta label="module" value={node.module} /> : null}
         {node.kind === "gate" ? (
           <>
@@ -38,8 +39,11 @@ export function SopInspector({ sop, node }: SopInspectorProps) {
           <>
             <Meta label="task" value={node.task_id} />
             <Meta label="to" value={node.to} />
-            <Meta label="paths" value={node.allowed_paths.join(", ")} />
-            <Meta label="evidence" value={node.evidence_required.join(", ")} />
+            <Meta label="objective" value={node.objective} />
+            <Meta label="allowed_paths" value={node.allowed_paths.join(", ")} />
+            <Meta label="denied_paths" value={node.denied_paths.join(", ")} />
+            <Meta label="return_contract" value={node.return_contract.required_fields.join(", ")} />
+            <Meta label="evidence_required" value={node.evidence_required.join(", ")} />
           </>
         ) : null}
       </dl>
@@ -55,4 +59,3 @@ function Meta({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-

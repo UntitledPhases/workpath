@@ -8,6 +8,7 @@ import { type SopFlowNodeData } from "../../src/ui/canvas/flowModel.js";
 describe("SopNode", () => {
   it("renders node shape labels and visible privacy classification", () => {
     const data: SopFlowNodeData = {
+      defaultPrivacy: "internal",
       selected: true,
       node: {
         id: "execute",
@@ -40,7 +41,42 @@ describe("SopNode", () => {
     expect(screen.getByRole("button", { name: "step: Execute scoped work" }).getAttribute("aria-pressed")).toBe(
       "true"
     );
-    expect(screen.getByText("EX")).toBeTruthy();
+    expect(screen.getByText("Execute")).toBeTruthy();
     expect(screen.getByText("sensitive")).toBeTruthy();
+  });
+
+  it("hides redundant default privacy classification", () => {
+    const data: SopFlowNodeData = {
+      defaultPrivacy: "internal",
+      selected: false,
+      node: {
+        id: "intent",
+        kind: "step",
+        module: "intent",
+        title: "Extract intent",
+        privacy: "internal"
+      }
+    };
+
+    render(
+      <ReactFlowProvider>
+        <SopNode
+          id="intent"
+          type="sopNode"
+          data={data}
+          selected={false}
+          isConnectable={false}
+          positionAbsoluteX={0}
+          positionAbsoluteY={0}
+          dragging={false}
+          zIndex={0}
+          selectable={true}
+          deletable={false}
+          draggable={false}
+        />
+      </ReactFlowProvider>
+    );
+
+    expect(screen.queryByText("internal")).toBeNull();
   });
 });

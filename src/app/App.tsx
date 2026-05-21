@@ -1,13 +1,22 @@
-import { useMemo, useState } from "react";
+import { type CSSProperties, useMemo, useState } from "react";
 
 import { seedSop } from "./seed.js";
 import { SopCanvas } from "../ui/canvas/SopCanvas.js";
 import { SopInspector } from "../ui/side-panel/SopInspector.js";
 
+const MODULE_LEGEND = [
+  { label: "Intent", color: "#2563eb" },
+  { label: "Research", color: "#4f46e5" },
+  { label: "Plan", color: "#9333ea" },
+  { label: "Execute", color: "#16a34a" },
+  { label: "Verify", color: "#d97706" },
+  { label: "Return", color: "#0f766e" }
+];
+
 export function App() {
-  const [selectedNodeId, setSelectedNodeId] = useState(seedSop.entry_node_id);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(seedSop.entry_node_id);
   const selectedNode = useMemo(
-    () => seedSop.nodes.find((node) => node.id === selectedNodeId) ?? seedSop.nodes[0],
+    () => (selectedNodeId ? seedSop.nodes.find((node) => node.id === selectedNodeId) : undefined),
     [selectedNodeId]
   );
 
@@ -19,11 +28,19 @@ export function App() {
           <h1>{seedSop.title}</h1>
         </div>
         <div className="status-strip">
-          <span>{seedSop.kind.replaceAll("_", " ")}</span>
+          <span>{formatKind(seedSop.kind)}</span>
           <span>{seedSop.nodes.length} nodes</span>
           <span>{seedSop.edges.length} edges</span>
         </div>
       </header>
+      <div className="module-legend" aria-label="Module colors">
+        {MODULE_LEGEND.map((item) => (
+          <span className="legend-item" key={item.label}>
+            <span className="legend-swatch" style={{ "--module-border": item.color } as CSSProperties} />
+            {item.label}
+          </span>
+        ))}
+      </div>
       <section className="workspace">
         <nav className="sr-node-index" aria-label="SOP nodes">
           {seedSop.nodes.map((node) => (
@@ -38,9 +55,16 @@ export function App() {
             </button>
           ))}
         </nav>
-        <SopCanvas sop={seedSop} selectedNodeId={selectedNode?.id} onSelectNode={setSelectedNodeId} />
+        <SopCanvas sop={seedSop} selectedNodeId={selectedNodeId} onSelectNode={setSelectedNodeId} />
         <SopInspector sop={seedSop} node={selectedNode} />
       </section>
     </main>
   );
+}
+
+function formatKind(kind: string): string {
+  return kind
+    .split("_")
+    .map((part) => (part.toLowerCase() === "sop" ? "SOP" : part[0].toUpperCase() + part.slice(1)))
+    .join(" ");
 }

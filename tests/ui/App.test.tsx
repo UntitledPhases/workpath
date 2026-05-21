@@ -96,11 +96,35 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "Project SOP" })).toBeTruthy();
     expect(screen.getByTestId("sop-canvas")).toBeTruthy();
     expect(screen.getByTestId("sop-inspector").textContent).toContain("Extract intent");
+    expect(screen.getByTestId("sop-inspector").textContent).toContain(
+      "Clarify goal, constraints, done-state, and risk."
+    );
     expect(screen.getAllByText("internal").length).toBeGreaterThan(0);
 
     fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute scoped work" }));
 
     expect(screen.getByTestId("sop-inspector").textContent).toContain("Execute scoped work");
     expect(screen.getByTestId("sop-inspector").textContent).toContain("execute");
+  });
+
+  it("renders complete boundary metadata and clears selection on pane click", async () => {
+    const { container } = render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Select boundary: Codex worker handoff" }));
+
+    const boundaryPanel = screen.getByTestId("sop-inspector").textContent ?? "";
+    expect(boundaryPanel).toContain("Implement the scoped slice without touching unrelated files.");
+    expect(boundaryPanel).toContain("src/**, tests/**, docs/**");
+    expect(boundaryPanel).toContain(".env, .ssh/**");
+    expect(boundaryPanel).toContain("summary, files_changed, tests_run, open_risks");
+    expect(boundaryPanel).toContain("artifact_tests_passed");
+
+    const pane = container.querySelector(".react-flow__pane");
+    if (!pane) {
+      throw new Error("Missing React Flow pane");
+    }
+    fireEvent.click(pane);
+
+    expect(screen.getByTestId("sop-inspector").textContent).not.toContain("Codex worker handoff");
   });
 });

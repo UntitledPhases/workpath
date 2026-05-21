@@ -191,58 +191,58 @@
     "nodes": [
       {
         "id": "intent",
-        "x": 80,
-        "y": 220
+        "x": 60,
+        "y": 130
       },
       {
         "id": "research",
-        "x": 260,
-        "y": 220
+        "x": 280,
+        "y": 130
       },
       {
         "id": "plan",
-        "x": 440,
-        "y": 220
+        "x": 500,
+        "y": 130
       },
       {
         "id": "execute",
-        "x": 620,
-        "y": 220
+        "x": 720,
+        "y": 130
       },
       {
         "id": "verify",
-        "x": 800,
-        "y": 220
+        "x": 940,
+        "y": 130
       },
       {
         "id": "return",
-        "x": 980,
-        "y": 220
-      },
-      {
-        "id": "gate_reverse_pass",
-        "x": 620,
-        "y": 80
-      },
-      {
-        "id": "gate_tests",
-        "x": 800,
-        "y": 80
+        "x": 1160,
+        "y": 130
       },
       {
         "id": "artifact_reverse_pass",
-        "x": 500,
-        "y": 80
+        "x": 340,
+        "y": 330
+      },
+      {
+        "id": "gate_reverse_pass",
+        "x": 590,
+        "y": 330
       },
       {
         "id": "artifact_tests_passed",
-        "x": 680,
-        "y": 80
+        "x": 820,
+        "y": 330
+      },
+      {
+        "id": "gate_tests",
+        "x": 1070,
+        "y": 330
       },
       {
         "id": "boundary_codex_worker",
-        "x": 620,
-        "y": 360
+        "x": 710,
+        "y": 540
       }
     ]
   }
