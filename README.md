@@ -13,8 +13,10 @@ There is no remote, no deployment config, and no runtime agent execution.
 
 ## Current Slice
 
-Workpath now has the compiler-first path plus a read-only React Flow canvas
-over the native seed SOP.
+Workpath now has the compiler-first path plus a read-only React Flow canvas over
+the native seed SOP. The canvas uses a two-level grammar: the overview shows
+only lifecycle process steps, while selecting a step reveals its subprocess and
+attached gates, evidence, or handoff contracts.
 
 ```powershell
 npm install
@@ -33,6 +35,14 @@ that the output is accepted by Ideate.
 
 The canvas also reads [examples/seed-project-sop.json](examples/seed-project-sop.json)
 directly. The compiled bundle is an output artifact, not the authoring source.
+
+## Workflow Grammar
+
+- `nodes` stores Ideate-compatible process steps, evidence, review gates, and handoffs.
+- `edges` stores the export-facing relationships needed by the compiler.
+- `subprocesses` stores authoring detail graphs keyed by `parent_step_id`.
+- Overview rendering shows only top-level step sequence.
+- Detail rendering shows the selected step's subprocess plus declared attachments.
 
 ## Boundary
 

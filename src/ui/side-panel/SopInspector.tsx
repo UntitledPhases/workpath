@@ -1,26 +1,29 @@
-import { type SopGraph, type SopNode } from "../../domain/sop/index.js";
+import { type SopGraph, type SopSelection } from "../../domain/sop/index.js";
 
 interface SopInspectorProps {
   sop: SopGraph;
-  node?: SopNode;
+  selection?: SopSelection;
 }
 
-export function SopInspector({ sop, node }: SopInspectorProps) {
-  if (!node) {
+export function SopInspector({ sop, selection }: SopInspectorProps) {
+  if (!selection) {
     return <aside className="inspector" data-testid="sop-inspector" aria-label="Inspector" />;
   }
 
+  const node = selection.node;
   return (
     <aside className="inspector" data-testid="sop-inspector">
       <div className="inspector-header">
-        <span>{node.kind}</span>
+        <span>{selection.kind === "subprocess_node" ? "activity" : node.kind}</span>
         <h2>{node.title}</h2>
       </div>
       <dl>
         <Meta label="id" value={node.id} />
         <Meta label="privacy" value={"privacy" in node && node.privacy ? node.privacy : sop.default_privacy} />
+        {selection.parentStepId && node.kind !== "step" ? <Meta label="parent_step" value={selection.parentStepId} /> : null}
         {node.notes ? <Meta label="notes" value={node.notes} /> : null}
         {node.kind === "step" ? <Meta label="module" value={node.module} /> : null}
+        {node.kind === "activity" ? <Meta label="role" value="subprocess" /> : null}
         {node.kind === "gate" ? (
           <>
             <Meta label="gate" value={node.gate_kind} />

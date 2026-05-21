@@ -9,6 +9,7 @@ describe("SopNode", () => {
   it("renders node shape labels and visible privacy classification", () => {
     const data: SopFlowNodeData = {
       defaultPrivacy: "internal",
+      layer: "overview",
       selected: true,
       node: {
         id: "execute",
@@ -48,6 +49,7 @@ describe("SopNode", () => {
   it("hides redundant default privacy classification", () => {
     const data: SopFlowNodeData = {
       defaultPrivacy: "internal",
+      layer: "overview",
       selected: false,
       node: {
         id: "intent",

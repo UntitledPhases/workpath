@@ -9,6 +9,7 @@ describe("native SOP schema", () => {
 
     expect(sop.kind).toBe("single_node_sop");
     expect(sop.nodes).toHaveLength(11);
+    expect(sop.subprocesses).toHaveLength(6);
   });
 
   it("rejects a gate without task_id", async () => {
@@ -61,5 +62,31 @@ describe("native SOP schema", () => {
 
     expect(result.success).toBe(false);
   });
-});
 
+  it("rejects subprocess edges that point outside subprocess nodes and attachments", async () => {
+    const sop = await readSeedSop();
+    const invalid = {
+      ...sop,
+      subprocesses: sop.subprocesses.map((subprocess) =>
+        subprocess.parent_step_id === "research"
+          ? {
+              ...subprocess,
+              edges: [
+                ...subprocess.edges,
+                {
+                  id: "edge_research_bad_external",
+                  from: "research_local_artifacts",
+                  to: "execute",
+                  kind: "sequence"
+                }
+              ]
+            }
+          : subprocess
+      )
+    };
+
+    const result = sopGraphSchema.safeParse(invalid);
+
+    expect(result.success).toBe(false);
+  });
+});

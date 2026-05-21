@@ -42,6 +42,7 @@ function simpleSop(title: string): SopGraph {
       { id: "edge_gate_return", from: "gate_done", to: "return", kind: "gates" },
       { id: "edge_artifact_gate", from: "artifact_done", to: "gate_done", kind: "validates" }
     ],
+    subprocesses: [],
     canvas: {
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -72,4 +73,3 @@ describe("compiler property", () => {
     );
   });
 });
-

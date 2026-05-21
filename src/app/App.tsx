@@ -1,6 +1,7 @@
-import { type CSSProperties, useMemo, useState } from "react";
+import { type CSSProperties, useState } from "react";
 
 import { seedSop } from "./seed.js";
+import { findSopSelection } from "../domain/sop/index.js";
 import { SopCanvas } from "../ui/canvas/SopCanvas.js";
 import { SopInspector } from "../ui/side-panel/SopInspector.js";
 
@@ -14,11 +15,14 @@ const MODULE_LEGEND = [
 ];
 
 export function App() {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(seedSop.entry_node_id);
-  const selectedNode = useMemo(
-    () => (selectedNodeId ? seedSop.nodes.find((node) => node.id === selectedNodeId) : undefined),
-    [selectedNodeId]
-  );
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(initialSelectedNodeId());
+  const selected = findSopSelection(seedSop, selectedNodeId);
+  const srNodes = [
+    ...seedSop.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title })),
+    ...seedSop.subprocesses.flatMap((subprocess) =>
+      subprocess.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title }))
+    )
+  ];
 
   return (
     <main className="app-shell">
@@ -29,8 +33,8 @@ export function App() {
         </div>
         <div className="status-strip">
           <span>{formatKind(seedSop.kind)}</span>
-          <span>{seedSop.nodes.length} nodes</span>
-          <span>{seedSop.edges.length} edges</span>
+          <span>6 process nodes</span>
+          <span>{seedSop.subprocesses.length} detail graphs</span>
         </div>
       </header>
       <div className="module-legend" aria-label="Module colors">
@@ -43,7 +47,7 @@ export function App() {
       </div>
       <section className="workspace">
         <nav className="sr-node-index" aria-label="SOP nodes">
-          {seedSop.nodes.map((node) => (
+          {srNodes.map((node) => (
             <button
               key={node.id}
               type="button"
@@ -56,10 +60,15 @@ export function App() {
           ))}
         </nav>
         <SopCanvas sop={seedSop} selectedNodeId={selectedNodeId} onSelectNode={setSelectedNodeId} />
-        <SopInspector sop={seedSop} node={selectedNode} />
+        <SopInspector sop={seedSop} selection={selected} />
       </section>
     </main>
   );
+}
+
+function initialSelectedNodeId(): string {
+  const selected = new URLSearchParams(window.location.search).get("selected");
+  return selected && findSopSelection(seedSop, selected) ? selected : seedSop.entry_node_id;
 }
 
 function formatKind(kind: string): string {

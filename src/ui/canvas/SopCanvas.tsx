@@ -34,7 +34,7 @@ export function SopCanvas(props: SopCanvasProps) {
 
 function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
   const nodes = useMemo(() => toFlowNodes(sop, selectedNodeId), [sop, selectedNodeId]);
-  const edges = useMemo(() => toFlowEdges(sop), [sop]);
+  const edges = useMemo(() => toFlowEdges(sop, selectedNodeId), [sop, selectedNodeId]);
   const handleNodeClick: NodeMouseHandler = (_, node) => {
     onSelectNode(node.id);
   };

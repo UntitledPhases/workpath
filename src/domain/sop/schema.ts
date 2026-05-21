@@ -31,6 +31,14 @@ export const edgeKindSchema = z.enum([
   "hands_off_to"
 ]);
 
+export const subprocessEdgeKindSchema = z.enum([
+  "sequence",
+  "produces",
+  "validates",
+  "delegates_to",
+  "gates"
+]);
+
 const nodeBaseSchema = z.object({
   id: z.string().min(1).regex(/^[A-Za-z][A-Za-z0-9_-]*$/),
   title: z.string().min(1),
@@ -90,6 +98,28 @@ export const canvasNodeSchema = z.object({
   y: z.number()
 });
 
+export const subprocessNodeSchema = nodeBaseSchema.extend({
+  kind: z.literal("activity")
+});
+
+export const subprocessEdgeSchema = z.object({
+  id: z.string().min(1).regex(/^[A-Za-z][A-Za-z0-9_-]*$/),
+  from: z.string().min(1),
+  to: z.string().min(1),
+  kind: subprocessEdgeKindSchema
+});
+
+export const subprocessSchema = z.object({
+  parent_step_id: z.string().min(1),
+  title: z.string().min(1),
+  nodes: z.array(subprocessNodeSchema).min(1),
+  edges: z.array(subprocessEdgeSchema),
+  attached_node_ids: z.array(z.string().min(1)).default([]),
+  canvas: z.object({
+    nodes: z.array(canvasNodeSchema)
+  })
+});
+
 export const sopGraphSchema = z
   .object({
     schema_version: z.literal("1.0"),
@@ -102,6 +132,7 @@ export const sopGraphSchema = z
     default_privacy: privacyClassificationSchema.default("internal"),
     nodes: z.array(sopNodeSchema).min(1),
     edges: z.array(sopEdgeSchema),
+    subprocesses: z.array(subprocessSchema).default([]),
     canvas: z.object({
       viewport: z.object({
         x: z.number(),
@@ -113,6 +144,7 @@ export const sopGraphSchema = z
   })
   .superRefine((graph, ctx) => {
     const nodes = new Map(graph.nodes.map((node) => [node.id, node]));
+    const stepIds = new Set(graph.nodes.filter((node) => node.kind === "step").map((node) => node.id));
 
     if (!nodes.has(graph.entry_node_id)) {
       ctx.addIssue({
@@ -188,17 +220,101 @@ export const sopGraphSchema = z
         });
       }
     }
+
+    const seenSubprocessParents = new Set<string>();
+    const globalSubprocessNodeIds = new Set<string>();
+    for (const [subprocessIndex, subprocess] of graph.subprocesses.entries()) {
+      if (seenSubprocessParents.has(subprocess.parent_step_id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["subprocesses", subprocessIndex, "parent_step_id"],
+          message: "only one subprocess may describe a step"
+        });
+      }
+      seenSubprocessParents.add(subprocess.parent_step_id);
+
+      if (!stepIds.has(subprocess.parent_step_id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["subprocesses", subprocessIndex, "parent_step_id"],
+          message: "subprocess parent_step_id must reference a step node"
+        });
+      }
+
+      const subprocessNodes = new Set<string>();
+      for (const [nodeIndex, node] of subprocess.nodes.entries()) {
+        if (nodes.has(node.id) || globalSubprocessNodeIds.has(node.id)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "id"],
+            message: "subprocess node ids must be globally unique"
+          });
+        }
+        if (subprocessNodes.has(node.id)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "id"],
+            message: "subprocess node ids must be unique within the subprocess"
+          });
+        }
+        subprocessNodes.add(node.id);
+        globalSubprocessNodeIds.add(node.id);
+      }
+
+      const seenSubprocessEdgeIds = new Set<string>();
+      const endpointIds = new Set([...subprocessNodes, ...subprocess.attached_node_ids]);
+      for (const [edgeIndex, edge] of subprocess.edges.entries()) {
+        if (seenSubprocessEdgeIds.has(edge.id)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["subprocesses", subprocessIndex, "edges", edgeIndex, "id"],
+            message: "subprocess edge ids must be unique within the subprocess"
+          });
+        }
+        seenSubprocessEdgeIds.add(edge.id);
+        if (!endpointIds.has(edge.from) || !endpointIds.has(edge.to)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["subprocesses", subprocessIndex, "edges", edgeIndex],
+            message: "subprocess edge endpoints must reference subprocess nodes or attached SOP nodes"
+          });
+        }
+      }
+
+      for (const [attachedIndex, attachedNodeId] of subprocess.attached_node_ids.entries()) {
+        if (!nodes.has(attachedNodeId)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["subprocesses", subprocessIndex, "attached_node_ids", attachedIndex],
+            message: "attached_node_ids must reference existing SOP nodes"
+          });
+        }
+      }
+
+      for (const [canvasIndex, canvasNode] of subprocess.canvas.nodes.entries()) {
+        if (!endpointIds.has(canvasNode.id)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["subprocesses", subprocessIndex, "canvas", "nodes", canvasIndex, "id"],
+            message: "subprocess canvas nodes must reference subprocess nodes or attached SOP nodes"
+          });
+        }
+      }
+    }
   });
 
 export type PrivacyClassification = z.infer<typeof privacyClassificationSchema>;
 export type StepModule = z.infer<typeof stepModuleSchema>;
 export type GateKind = z.infer<typeof gateKindSchema>;
 export type EdgeKind = z.infer<typeof edgeKindSchema>;
+export type SubprocessEdgeKind = z.infer<typeof subprocessEdgeKindSchema>;
 export type SopNode = z.infer<typeof sopNodeSchema>;
 export type StepNode = z.infer<typeof stepNodeSchema>;
 export type GateNode = z.infer<typeof gateNodeSchema>;
 export type EvidenceNode = z.infer<typeof evidenceNodeSchema>;
 export type BoundaryNode = z.infer<typeof boundaryNodeSchema>;
 export type SopEdge = z.infer<typeof sopEdgeSchema>;
+export type SubprocessNode = z.infer<typeof subprocessNodeSchema>;
+export type SubprocessEdge = z.infer<typeof subprocessEdgeSchema>;
+export type SopSubprocess = z.infer<typeof subprocessSchema>;
 export type SopGraph = z.infer<typeof sopGraphSchema>;
-

@@ -182,6 +182,529 @@
       "kind": "hands_off_to"
     }
   ],
+  "subprocesses": [
+    {
+      "parent_step_id": "intent",
+      "title": "Intent subprocess",
+      "nodes": [
+        {
+          "id": "intent_goal",
+          "title": "Capture goal",
+          "kind": "activity"
+        },
+        {
+          "id": "intent_constraints",
+          "title": "Capture constraints",
+          "kind": "activity"
+        },
+        {
+          "id": "intent_done_state",
+          "title": "Define done-state",
+          "kind": "activity"
+        },
+        {
+          "id": "intent_risk",
+          "title": "Set risk",
+          "kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_intent_goal_constraints",
+          "from": "intent_goal",
+          "to": "intent_constraints",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_intent_constraints_done",
+          "from": "intent_constraints",
+          "to": "intent_done_state",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_intent_done_risk",
+          "from": "intent_done_state",
+          "to": "intent_risk",
+          "kind": "sequence"
+        }
+      ],
+      "attached_node_ids": [],
+      "canvas": {
+        "nodes": [
+          {
+            "id": "intent_goal",
+            "x": 180,
+            "y": 330
+          },
+          {
+            "id": "intent_constraints",
+            "x": 400,
+            "y": 330
+          },
+          {
+            "id": "intent_done_state",
+            "x": 620,
+            "y": 330
+          },
+          {
+            "id": "intent_risk",
+            "x": 840,
+            "y": 330
+          }
+        ]
+      }
+    },
+    {
+      "parent_step_id": "research",
+      "title": "Research subprocess",
+      "nodes": [
+        {
+          "id": "research_local_artifacts",
+          "title": "Check local artifacts",
+          "kind": "activity"
+        },
+        {
+          "id": "research_questions",
+          "title": "Frame questions",
+          "kind": "activity"
+        },
+        {
+          "id": "research_wide_net",
+          "title": "Search wide net",
+          "kind": "activity"
+        },
+        {
+          "id": "research_breadth_agents",
+          "title": "Run breadth agents",
+          "kind": "activity"
+        },
+        {
+          "id": "research_convergence",
+          "title": "Synthesize convergence",
+          "kind": "activity"
+        },
+        {
+          "id": "research_narrative",
+          "title": "Final narrative",
+          "kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_research_local_questions",
+          "from": "research_local_artifacts",
+          "to": "research_questions",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_questions_wide",
+          "from": "research_questions",
+          "to": "research_wide_net",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_wide_breadth",
+          "from": "research_wide_net",
+          "to": "research_breadth_agents",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_breadth_convergence",
+          "from": "research_breadth_agents",
+          "to": "research_convergence",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_convergence_narrative",
+          "from": "research_convergence",
+          "to": "research_narrative",
+          "kind": "sequence"
+        }
+      ],
+      "attached_node_ids": [],
+      "canvas": {
+        "nodes": [
+          {
+            "id": "research_local_artifacts",
+            "x": 80,
+            "y": 330
+          },
+          {
+            "id": "research_questions",
+            "x": 300,
+            "y": 330
+          },
+          {
+            "id": "research_wide_net",
+            "x": 520,
+            "y": 330
+          },
+          {
+            "id": "research_breadth_agents",
+            "x": 740,
+            "y": 330
+          },
+          {
+            "id": "research_convergence",
+            "x": 960,
+            "y": 330
+          },
+          {
+            "id": "research_narrative",
+            "x": 1180,
+            "y": 330
+          }
+        ]
+      }
+    },
+    {
+      "parent_step_id": "plan",
+      "title": "Plan subprocess",
+      "nodes": [
+        {
+          "id": "plan_decompose",
+          "title": "Decompose work",
+          "kind": "activity"
+        },
+        {
+          "id": "plan_forward",
+          "title": "Forward plan",
+          "kind": "activity"
+        },
+        {
+          "id": "plan_reverse",
+          "title": "Reverse pass",
+          "kind": "activity"
+        },
+        {
+          "id": "plan_revise",
+          "title": "Revise plan",
+          "kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_plan_decompose_forward",
+          "from": "plan_decompose",
+          "to": "plan_forward",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_plan_forward_reverse",
+          "from": "plan_forward",
+          "to": "plan_reverse",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_plan_reverse_revise",
+          "from": "plan_reverse",
+          "to": "plan_revise",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_plan_reverse_artifact",
+          "from": "plan_reverse",
+          "to": "artifact_reverse_pass",
+          "kind": "produces"
+        },
+        {
+          "id": "edge_plan_artifact_gate",
+          "from": "artifact_reverse_pass",
+          "to": "gate_reverse_pass",
+          "kind": "validates"
+        }
+      ],
+      "attached_node_ids": [
+        "artifact_reverse_pass",
+        "gate_reverse_pass"
+      ],
+      "canvas": {
+        "nodes": [
+          {
+            "id": "plan_decompose",
+            "x": 180,
+            "y": 330
+          },
+          {
+            "id": "plan_forward",
+            "x": 400,
+            "y": 330
+          },
+          {
+            "id": "plan_reverse",
+            "x": 620,
+            "y": 330
+          },
+          {
+            "id": "artifact_reverse_pass",
+            "x": 520,
+            "y": 500
+          },
+          {
+            "id": "gate_reverse_pass",
+            "x": 740,
+            "y": 500
+          },
+          {
+            "id": "plan_revise",
+            "x": 960,
+            "y": 330
+          }
+        ]
+      }
+    },
+    {
+      "parent_step_id": "execute",
+      "title": "Execute subprocess",
+      "nodes": [
+        {
+          "id": "execute_confirm_scope",
+          "title": "Confirm scope",
+          "kind": "activity"
+        },
+        {
+          "id": "execute_handoff_contract",
+          "title": "Create handoff",
+          "kind": "activity"
+        },
+        {
+          "id": "execute_delegate_worker",
+          "title": "Delegate worker",
+          "kind": "activity"
+        },
+        {
+          "id": "execute_receive_return",
+          "title": "Receive return",
+          "kind": "activity"
+        },
+        {
+          "id": "execute_integrate",
+          "title": "Integrate changes",
+          "kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_execute_scope_contract",
+          "from": "execute_confirm_scope",
+          "to": "execute_handoff_contract",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_execute_contract_boundary",
+          "from": "execute_handoff_contract",
+          "to": "boundary_codex_worker",
+          "kind": "delegates_to"
+        },
+        {
+          "id": "edge_execute_contract_delegate",
+          "from": "execute_handoff_contract",
+          "to": "execute_delegate_worker",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_execute_delegate_return",
+          "from": "execute_delegate_worker",
+          "to": "execute_receive_return",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_execute_return_integrate",
+          "from": "execute_receive_return",
+          "to": "execute_integrate",
+          "kind": "sequence"
+        }
+      ],
+      "attached_node_ids": [
+        "boundary_codex_worker"
+      ],
+      "canvas": {
+        "nodes": [
+          {
+            "id": "execute_confirm_scope",
+            "x": 180,
+            "y": 330
+          },
+          {
+            "id": "execute_handoff_contract",
+            "x": 400,
+            "y": 330
+          },
+          {
+            "id": "boundary_codex_worker",
+            "x": 520,
+            "y": 500
+          },
+          {
+            "id": "execute_delegate_worker",
+            "x": 620,
+            "y": 330
+          },
+          {
+            "id": "execute_receive_return",
+            "x": 840,
+            "y": 330
+          },
+          {
+            "id": "execute_integrate",
+            "x": 1060,
+            "y": 330
+          }
+        ]
+      }
+    },
+    {
+      "parent_step_id": "verify",
+      "title": "Verify subprocess",
+      "nodes": [
+        {
+          "id": "verify_run_checks",
+          "title": "Run checks",
+          "kind": "activity"
+        },
+        {
+          "id": "verify_inspect_outputs",
+          "title": "Inspect outputs",
+          "kind": "activity"
+        },
+        {
+          "id": "verify_validate_evidence",
+          "title": "Validate evidence",
+          "kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_verify_checks_artifact",
+          "from": "verify_run_checks",
+          "to": "artifact_tests_passed",
+          "kind": "produces"
+        },
+        {
+          "id": "edge_verify_artifact_gate",
+          "from": "artifact_tests_passed",
+          "to": "gate_tests",
+          "kind": "validates"
+        },
+        {
+          "id": "edge_verify_checks_outputs",
+          "from": "verify_run_checks",
+          "to": "verify_inspect_outputs",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_verify_outputs_evidence",
+          "from": "verify_inspect_outputs",
+          "to": "verify_validate_evidence",
+          "kind": "sequence"
+        }
+      ],
+      "attached_node_ids": [
+        "artifact_tests_passed",
+        "gate_tests"
+      ],
+      "canvas": {
+        "nodes": [
+          {
+            "id": "verify_run_checks",
+            "x": 280,
+            "y": 330
+          },
+          {
+            "id": "artifact_tests_passed",
+            "x": 500,
+            "y": 500
+          },
+          {
+            "id": "gate_tests",
+            "x": 720,
+            "y": 500
+          },
+          {
+            "id": "verify_inspect_outputs",
+            "x": 720,
+            "y": 330
+          },
+          {
+            "id": "verify_validate_evidence",
+            "x": 940,
+            "y": 330
+          }
+        ]
+      }
+    },
+    {
+      "parent_step_id": "return",
+      "title": "Return subprocess",
+      "nodes": [
+        {
+          "id": "return_summary",
+          "title": "Summarize result",
+          "kind": "activity"
+        },
+        {
+          "id": "return_evidence",
+          "title": "List evidence",
+          "kind": "activity"
+        },
+        {
+          "id": "return_risks",
+          "title": "Name risks",
+          "kind": "activity"
+        },
+        {
+          "id": "return_next_slice",
+          "title": "Set next slice",
+          "kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_return_summary_evidence",
+          "from": "return_summary",
+          "to": "return_evidence",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_return_evidence_risks",
+          "from": "return_evidence",
+          "to": "return_risks",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_return_risks_next",
+          "from": "return_risks",
+          "to": "return_next_slice",
+          "kind": "sequence"
+        }
+      ],
+      "attached_node_ids": [],
+      "canvas": {
+        "nodes": [
+          {
+            "id": "return_summary",
+            "x": 180,
+            "y": 330
+          },
+          {
+            "id": "return_evidence",
+            "x": 400,
+            "y": 330
+          },
+          {
+            "id": "return_risks",
+            "x": 620,
+            "y": 330
+          },
+          {
+            "id": "return_next_slice",
+            "x": 840,
+            "y": 330
+          }
+        ]
+      }
+    }
+  ],
   "canvas": {
     "viewport": {
       "x": 0,

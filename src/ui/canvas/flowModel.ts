@@ -1,17 +1,32 @@
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
-import { type PrivacyClassification, type SopGraph, type SopNode } from "../../domain/sop/index.js";
+import {
+  activeStepIdForSelection,
+  attachedNodesForStep,
+  processSteps,
+  subprocessForStep,
+  type PrivacyClassification,
+  type SopGraph,
+  type SopNode,
+  type SubprocessNode
+} from "../../domain/sop/index.js";
 
-const NODE_DIMENSIONS: Record<SopNode["kind"], { width: number; height: number }> = {
+type FlowDisplayNode = SopNode | SubprocessNode;
+type FlowLayer = "overview" | "detail" | "attachment";
+
+const NODE_DIMENSIONS: Record<FlowDisplayNode["kind"], { width: number; height: number }> = {
   step: { width: 168, height: 116 },
   gate: { width: 156, height: 126 },
   evidence: { width: 166, height: 116 },
-  boundary: { width: 188, height: 116 }
+  boundary: { width: 188, height: 116 },
+  activity: { width: 172, height: 112 }
 };
 
 export interface SopFlowNodeData extends Record<string, unknown> {
   defaultPrivacy: PrivacyClassification;
-  node: SopNode;
+  layer: FlowLayer;
+  node: FlowDisplayNode;
+  parentStepId?: string;
   selected: boolean;
 }
 
@@ -19,57 +34,115 @@ export type SopFlowNode = Node<SopFlowNodeData>;
 export type SopFlowEdge = Edge;
 
 export function toFlowNodes(sop: SopGraph, selectedNodeId?: string): SopFlowNode[] {
+  const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
   const canvasPositions = new Map(sop.canvas.nodes.map((node) => [node.id, node]));
-  return sop.nodes.map((node) => {
+  const nodes: SopFlowNode[] = processSteps(sop).map((node) => {
     const position = canvasPositions.get(node.id) ?? { x: 0, y: 0 };
-    const dimensions = NODE_DIMENSIONS[node.kind];
-    return {
-      id: node.id,
-      type: "sopNode",
-      position: { x: position.x, y: position.y },
-      data: {
-        defaultPrivacy: sop.default_privacy,
-        node,
-        selected: node.id === selectedNodeId
-      },
-      initialWidth: dimensions.width,
-      initialHeight: dimensions.height,
-      style: {
-        width: dimensions.width,
-        height: dimensions.height
-      },
-      draggable: false,
-      selectable: true
-    };
+    return toFlowNode(sop, node, "overview", position, selectedNodeId, node.id);
   });
+
+  if (!activeStepId) {
+    return nodes;
+  }
+
+  const subprocess = subprocessForStep(sop, activeStepId);
+  if (!subprocess) {
+    return nodes;
+  }
+
+  const detailPositions = new Map(subprocess.canvas.nodes.map((node) => [node.id, node]));
+  for (const node of subprocess.nodes) {
+    const position = detailPositions.get(node.id) ?? { x: 0, y: 0 };
+    nodes.push(toFlowNode(sop, node, "detail", position, selectedNodeId, activeStepId));
+  }
+
+  for (const node of attachedNodesForStep(sop, activeStepId)) {
+    const position = detailPositions.get(node.id) ?? canvasPositions.get(node.id) ?? { x: 0, y: 0 };
+    nodes.push(toFlowNode(sop, node, "attachment", position, selectedNodeId, activeStepId));
+  }
+
+  return nodes;
 }
 
-export function toFlowEdges(sop: SopGraph): SopFlowEdge[] {
-  return sop.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.from,
-    target: edge.to,
-    sourceHandle: sourceHandle(edge.kind),
-    targetHandle: targetHandle(edge.kind),
+export function toFlowEdges(sop: SopGraph, selectedNodeId?: string): SopFlowEdge[] {
+  const edges: SopFlowEdge[] = sop.edges
+    .filter((edge) => {
+      const from = sop.nodes.find((node) => node.id === edge.from);
+      const to = sop.nodes.find((node) => node.id === edge.to);
+      return edge.kind === "produces" && from?.kind === "step" && to?.kind === "step";
+    })
+    .map((edge) => toFlowEdge(edge.id, edge.from, edge.to, "sequence"));
+
+  const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
+  const subprocess = activeStepId ? subprocessForStep(sop, activeStepId) : undefined;
+  if (!subprocess) {
+    return edges;
+  }
+
+  for (const edge of subprocess.edges) {
+    edges.push(toFlowEdge(edge.id, edge.from, edge.to, edge.kind));
+  }
+
+  return edges;
+}
+
+function toFlowNode(
+  sop: SopGraph,
+  node: FlowDisplayNode,
+  layer: FlowLayer,
+  position: { x: number; y: number },
+  selectedNodeId: string | undefined,
+  parentStepId?: string
+): SopFlowNode {
+  const dimensions = NODE_DIMENSIONS[node.kind];
+  return {
+    id: node.id,
+    type: "sopNode",
+    position: { x: position.x, y: position.y },
+    data: {
+      defaultPrivacy: sop.default_privacy,
+      layer,
+      node,
+      parentStepId,
+      selected: node.id === selectedNodeId
+    },
+    initialWidth: dimensions.width,
+    initialHeight: dimensions.height,
+    style: {
+      width: dimensions.width,
+      height: dimensions.height
+    },
+    draggable: false,
+    selectable: true
+  };
+}
+
+function toFlowEdge(id: string, source: string, target: string, kind: string): SopFlowEdge {
+  return {
+    id,
+    source,
+    target,
+    sourceHandle: sourceHandle(kind),
+    targetHandle: targetHandle(kind),
     type: "smoothstep",
-    animated: edge.kind === "gates",
+    animated: kind === "gates" || kind === "delegates_to",
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      color: edgeColor(edge.kind)
+      color: edgeColor(kind)
     },
     style: {
-      stroke: edgeColor(edge.kind),
-      strokeWidth: edge.kind === "hands_off_to" ? 2.8 : 2,
-      strokeDasharray: edge.kind === "validates" ? "7 5" : undefined
+      stroke: edgeColor(kind),
+      strokeWidth: kind === "delegates_to" ? 2.8 : 2,
+      strokeDasharray: kind === "validates" || kind === "gates" ? "7 5" : undefined
     }
-  }));
+  };
 }
 
 function sourceHandle(kind: string): string {
   if (kind === "gates") {
     return "source-top";
   }
-  if (kind === "hands_off_to") {
+  if (kind === "hands_off_to" || kind === "delegates_to") {
     return "source-bottom";
   }
   return "source-right";
@@ -79,7 +152,7 @@ function targetHandle(kind: string): string {
   if (kind === "gates") {
     return "target-bottom";
   }
-  if (kind === "hands_off_to") {
+  if (kind === "hands_off_to" || kind === "delegates_to") {
     return "target-top";
   }
   return "target-left";
@@ -93,6 +166,9 @@ function edgeColor(kind: string): string {
     return "#b45309";
   }
   if (kind === "hands_off_to") {
+    return "#7c3aed";
+  }
+  if (kind === "delegates_to") {
     return "#7c3aed";
   }
   return "#64748b";

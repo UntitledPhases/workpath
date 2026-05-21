@@ -151,6 +151,23 @@ h1 {
   width: 116px;
 }
 
+.sop-node-activity .node-shape {
+  background: #f8fafc;
+  border-color: #64748b;
+  border-radius: 6px;
+  height: 52px;
+  width: 104px;
+}
+
+.sop-node-layer-detail .node-shape {
+  border-style: dashed;
+}
+
+.sop-node-layer-attachment .node-caption strong,
+.sop-node-layer-detail .node-caption strong {
+  font-size: 11px;
+}
+
 .sop-node-gate .node-shape {
   background: #fef9c3;
   border-color: #a16207;

@@ -14,6 +14,7 @@ export function SopNode({ data }: NodeProps<SopFlowNode>) {
   const className = [
     "sop-node",
     `sop-node-${node.kind}`,
+    `sop-node-layer-${data.layer}`,
     node.kind === "step" ? `module-${node.module}` : "",
     data.selected ? "is-selected" : ""
   ]
@@ -58,6 +59,9 @@ function nodeCode(node: SopFlowNode["data"]["node"]): string {
   if (node.kind === "evidence") {
     return compactCode(node.artifact_kind);
   }
+  if (node.kind === "activity") {
+    return compactActivityCode(node.title);
+  }
   return "BND";
 }
 
@@ -70,6 +74,9 @@ function nodeKindLabel(node: SopFlowNode["data"]["node"]): string {
   }
   if (node.kind === "evidence") {
     return node.artifact_kind;
+  }
+  if (node.kind === "activity") {
+    return "subprocess";
   }
   return "boundary";
 }
@@ -97,4 +104,15 @@ function compactCode(value: string): string {
     .slice(0, 3)
     .padEnd(3, value[0] ?? "X")
     .toUpperCase();
+}
+
+function compactActivityCode(value: string): string {
+  return (
+    value
+      .split(/[^A-Za-z0-9]+/)
+      .filter(Boolean)[0]
+      ?.slice(0, 3)
+      .padEnd(3, "X")
+      .toUpperCase() ?? "ACT"
+  );
 }
