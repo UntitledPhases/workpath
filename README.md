@@ -43,6 +43,10 @@ directly. The compiled bundle is an output artifact, not the authoring source.
 - `subprocesses` stores authoring detail graphs keyed by `parent_step_id`.
 - Overview rendering shows only top-level step sequence.
 - Detail rendering shows the selected step's subprocess plus declared attachments.
+- Process and activity titles are capped at 24 characters so labels can live
+  inside nodes; prose belongs in notes and sidebar fields.
+- Strong horizontal arrows mean sequence. Softer directional connectors mean
+  artifact/control relationships.
 
 ## Boundary
 

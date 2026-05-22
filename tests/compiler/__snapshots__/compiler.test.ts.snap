@@ -187,7 +187,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       "review_gate_ids": [],
       "schema_version": "1.0",
       "status": "planned",
-      "title": "Research current context",
+      "title": "Research context",
       "workpath_export_mode": "specification",
     },
     {
@@ -231,7 +231,7 @@ exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] 
       ],
       "schema_version": "1.0",
       "status": "planned",
-      "title": "Execute scoped work",
+      "title": "Execute work",
       "workpath_export_mode": "specification",
     },
     {

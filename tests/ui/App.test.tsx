@@ -101,16 +101,16 @@ describe("App", () => {
     );
     expect(screen.getAllByText("internal").length).toBeGreaterThan(0);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute scoped work" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute work" }));
 
-    expect(screen.getByTestId("sop-inspector").textContent).toContain("Execute scoped work");
+    expect(screen.getByTestId("sop-inspector").textContent).toContain("Execute work");
     expect(screen.getByTestId("sop-inspector").textContent).toContain("execute");
   });
 
   it("renders complete boundary metadata and clears selection on pane click", async () => {
     const { container } = render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Select boundary: Codex worker handoff" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select boundary: Worker handoff" }));
 
     const boundaryPanel = screen.getByTestId("sop-inspector").textContent ?? "";
     expect(boundaryPanel).toContain("Implement the scoped slice without touching unrelated files.");
@@ -125,6 +125,6 @@ describe("App", () => {
     }
     fireEvent.click(pane);
 
-    expect(screen.getByTestId("sop-inspector").textContent).not.toContain("Codex worker handoff");
+    expect(screen.getByTestId("sop-inspector").textContent).not.toContain("Worker handoff");
   });
 });

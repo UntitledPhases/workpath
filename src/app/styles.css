@@ -113,10 +113,13 @@ h1 {
 
 .canvas-shell {
   min-height: 0;
+  position: relative;
 }
 
 .react-flow {
-  background: #f8fafc;
+  background:
+    linear-gradient(to bottom, transparent 0 43%, #dbe3ef 43%, #dbe3ef calc(43% + 1px), transparent calc(43% + 1px)),
+    linear-gradient(to bottom, #f8fafc 0, #f8fafc 43%, #f3f6fa 43%, #f3f6fa 100%);
 }
 
 .react-flow__attribution {
@@ -126,11 +129,11 @@ h1 {
 .sop-node {
   align-items: center;
   background: transparent;
-  display: grid;
-  gap: 8px;
-  grid-template-rows: 62px minmax(34px, 1fr);
+  display: flex;
   height: 100%;
   justify-items: center;
+  justify-content: center;
+  padding: 8px;
   position: relative;
   width: 100%;
 }
@@ -141,60 +144,65 @@ h1 {
   border: 2px solid #2e7d32;
   color: #111827;
   display: flex;
-  height: 58px;
+  height: 100%;
   justify-content: center;
-  width: 86px;
+  padding: 8px 10px;
+  text-align: center;
+  width: 100%;
 }
 
 .sop-node-step .node-shape {
   border-radius: 6px;
-  width: 116px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
 .sop-node-activity .node-shape {
   background: #f8fafc;
   border-color: #64748b;
   border-radius: 6px;
-  height: 52px;
-  width: 104px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
 }
 
 .sop-node-layer-detail .node-shape {
   border-style: dashed;
 }
 
-.sop-node-layer-attachment .node-caption strong,
-.sop-node-layer-detail .node-caption strong {
-  font-size: 11px;
+.sop-node-layer-detail {
+  opacity: 0.96;
+}
+
+.sop-node-layer-attachment {
+  opacity: 0.88;
 }
 
 .sop-node-gate .node-shape {
   background: #fef9c3;
   border-color: #a16207;
+  height: 58px;
   transform: rotate(45deg);
   width: 58px;
-}
-
-.sop-node-gate .node-code {
-  transform: rotate(-45deg);
 }
 
 .sop-node-evidence .node-shape {
   background: #ecfeff;
   border-color: #0891b2;
   border-radius: 999px;
-  width: 100px;
+  height: 58px;
+  width: 92px;
 }
 
 .sop-node-boundary .node-shape {
   background: #f3e8ff;
   border-color: #7c3aed;
   clip-path: polygon(18% 0, 82% 0, 100% 50%, 82% 100%, 18% 100%, 0 50%);
-  width: 112px;
+  padding-inline: 24px;
 }
 
 .sop-node.is-selected .node-shape {
-  outline: 3px solid #111827;
+  box-shadow:
+    0 0 0 4px rgba(17, 24, 39, 0.18),
+    0 12px 26px rgba(15, 23, 42, 0.16);
+  outline: 2px solid #111827;
   outline-offset: 3px;
 }
 
@@ -228,32 +236,27 @@ h1 {
   border-color: #0f766e;
 }
 
-.node-code {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
-.node-caption {
-  display: grid;
-  gap: 2px;
-  justify-items: center;
-  max-width: 100%;
-  text-align: center;
-}
-
-.node-caption strong {
+.node-title {
   color: #111827;
   font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
   line-height: 1.2;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 
-.node-caption span {
-  color: #64748b;
+.sop-node-step .node-title {
+  font-size: 13px;
+}
+
+.sop-node-boundary .node-title {
   font-size: 11px;
-  font-weight: 650;
+  line-height: 1.15;
+}
+
+.is-symbol-only {
+  padding: 0;
 }
 
 .privacy-chip {
@@ -287,6 +290,50 @@ h1 {
   filter: brightness(0.98);
   outline: 2px solid #64748b;
   outline-offset: 2px;
+}
+
+.canvas-layer-badges {
+  display: flex;
+  gap: 8px;
+  left: 16px;
+  pointer-events: none;
+  position: absolute;
+  top: 14px;
+  z-index: 5;
+}
+
+.canvas-layer-badges span {
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.canvas-layer-badges span:last-child {
+  background: rgba(241, 245, 249, 0.96);
+  color: #111827;
+}
+
+.edge-sequence .react-flow__edge-path {
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.12));
+}
+
+.edge-produces,
+.edge-validates {
+  opacity: 0.86;
+}
+
+.sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .inspector {

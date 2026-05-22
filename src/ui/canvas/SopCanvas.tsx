@@ -10,7 +10,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { type SopGraph } from "../../domain/sop/index.js";
+import { activeStepIdForSelection, processSteps, type SopGraph } from "../../domain/sop/index.js";
 import { SopNode } from "./SopNode.js";
 import { toFlowEdges, toFlowNodes } from "./flowModel.js";
 
@@ -35,12 +35,18 @@ export function SopCanvas(props: SopCanvasProps) {
 function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
   const nodes = useMemo(() => toFlowNodes(sop, selectedNodeId), [sop, selectedNodeId]);
   const edges = useMemo(() => toFlowEdges(sop, selectedNodeId), [sop, selectedNodeId]);
+  const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
+  const activeStep = activeStepId ? processSteps(sop).find((node) => node.id === activeStepId) : undefined;
   const handleNodeClick: NodeMouseHandler = (_, node) => {
     onSelectNode(node.id);
   };
 
   return (
     <div className="canvas-shell" data-testid="sop-canvas">
+      <div className="canvas-layer-badges" aria-hidden="true">
+        <span>Overview</span>
+        {activeStep ? <span>Detail: {activeStep.title}</span> : null}
+      </div>
       <ReactFlow
         nodes={nodes}
         edges={edges}

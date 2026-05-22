@@ -20,7 +20,7 @@
       "id": "research",
       "kind": "step",
       "module": "research",
-      "title": "Research current context",
+      "title": "Research context",
       "privacy": "internal"
     },
     {
@@ -34,7 +34,7 @@
       "id": "execute",
       "kind": "step",
       "module": "execute",
-      "title": "Execute scoped work",
+      "title": "Execute work",
       "privacy": "internal"
     },
     {
@@ -89,7 +89,7 @@
     {
       "id": "boundary_codex_worker",
       "kind": "boundary",
-      "title": "Codex worker handoff",
+      "title": "Worker handoff",
       "privacy": "internal",
       "task_id": "execute",
       "to": "codex-worker",

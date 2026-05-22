@@ -30,6 +30,8 @@ describe("flowModel", () => {
       "edge_verify_return"
     ]);
     expect(edges.every((edge) => edge.label === undefined)).toBe(true);
+    expect(edges.every((edge) => edge.sourceHandle === "source-right")).toBe(true);
+    expect(edges.every((edge) => edge.targetHandle === "target-left")).toBe(true);
   });
 
   it("projects selected step attachments inside the detail graph", async () => {
@@ -53,5 +55,20 @@ describe("flowModel", () => {
     expect(gate).toBeUndefined();
     expect(detailGate).toMatchObject({ source: "artifact_reverse_pass", target: "gate_reverse_pass" });
     expect(edges.every((edge) => edge.label === undefined)).toBe(true);
+  });
+
+  it("routes produced artifacts through subdued vertical connectors", async () => {
+    const sop = await readSeedSop();
+    const edges = toFlowEdges(sop, "plan");
+    const artifactEdge = edges.find((edge) => edge.id === "edge_plan_reverse_artifact");
+
+    expect(artifactEdge).toMatchObject({
+      source: "plan_reverse",
+      sourceHandle: "source-bottom",
+      target: "artifact_reverse_pass",
+      targetHandle: "target-top",
+      className: "edge-produces"
+    });
+    expect(artifactEdge?.style).toMatchObject({ strokeWidth: 1.6 });
   });
 });

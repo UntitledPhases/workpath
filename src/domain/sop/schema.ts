@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const SOP_NODE_TITLE_MAX_LENGTH = 24;
+
 export const privacyClassificationSchema = z.enum([
   "public",
   "internal",
@@ -41,7 +43,7 @@ export const subprocessEdgeKindSchema = z.enum([
 
 const nodeBaseSchema = z.object({
   id: z.string().min(1).regex(/^[A-Za-z][A-Za-z0-9_-]*$/),
-  title: z.string().min(1),
+  title: z.string().min(1).max(SOP_NODE_TITLE_MAX_LENGTH),
   privacy: privacyClassificationSchema.optional(),
   notes: z.string().optional()
 });

@@ -15,11 +15,11 @@ type FlowDisplayNode = SopNode | SubprocessNode;
 type FlowLayer = "overview" | "detail" | "attachment";
 
 const NODE_DIMENSIONS: Record<FlowDisplayNode["kind"], { width: number; height: number }> = {
-  step: { width: 168, height: 116 },
-  gate: { width: 156, height: 126 },
-  evidence: { width: 166, height: 116 },
-  boundary: { width: 188, height: 116 },
-  activity: { width: 172, height: 112 }
+  step: { width: 172, height: 88 },
+  gate: { width: 92, height: 92 },
+  evidence: { width: 112, height: 82 },
+  boundary: { width: 194, height: 90 },
+  activity: { width: 176, height: 86 }
 };
 
 export interface SopFlowNodeData extends Record<string, unknown> {
@@ -124,6 +124,7 @@ function toFlowEdge(id: string, source: string, target: string, kind: string): S
     target,
     sourceHandle: sourceHandle(kind),
     targetHandle: targetHandle(kind),
+    className: `edge-${kind}`,
     type: "smoothstep",
     animated: kind === "gates" || kind === "delegates_to",
     markerEnd: {
@@ -132,13 +133,17 @@ function toFlowEdge(id: string, source: string, target: string, kind: string): S
     },
     style: {
       stroke: edgeColor(kind),
-      strokeWidth: kind === "delegates_to" ? 2.8 : 2,
-      strokeDasharray: kind === "validates" || kind === "gates" ? "7 5" : undefined
+      strokeLinecap: "round",
+      strokeWidth: edgeWidth(kind),
+      strokeDasharray: edgeDash(kind)
     }
   };
 }
 
 function sourceHandle(kind: string): string {
+  if (kind === "produces") {
+    return "source-bottom";
+  }
   if (kind === "gates") {
     return "source-top";
   }
@@ -149,6 +154,9 @@ function sourceHandle(kind: string): string {
 }
 
 function targetHandle(kind: string): string {
+  if (kind === "produces") {
+    return "target-top";
+  }
   if (kind === "gates") {
     return "target-bottom";
   }
@@ -172,4 +180,24 @@ function edgeColor(kind: string): string {
     return "#7c3aed";
   }
   return "#64748b";
+}
+
+function edgeWidth(kind: string): number {
+  if (kind === "sequence") {
+    return 2.8;
+  }
+  if (kind === "delegates_to" || kind === "hands_off_to") {
+    return 2.3;
+  }
+  return 1.6;
+}
+
+function edgeDash(kind: string): string | undefined {
+  if (kind === "validates" || kind === "gates") {
+    return "7 5";
+  }
+  if (kind === "delegates_to" || kind === "hands_off_to") {
+    return "5 5";
+  }
+  return undefined;
 }

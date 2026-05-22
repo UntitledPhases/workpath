@@ -6,7 +6,7 @@ import { SopNode } from "../../src/ui/canvas/SopNode.js";
 import { type SopFlowNodeData } from "../../src/ui/canvas/flowModel.js";
 
 describe("SopNode", () => {
-  it("renders node shape labels and visible privacy classification", () => {
+  it("renders compact titles inside the node and visible privacy classification", () => {
     const data: SopFlowNodeData = {
       defaultPrivacy: "internal",
       layer: "overview",
@@ -15,7 +15,7 @@ describe("SopNode", () => {
         id: "execute",
         kind: "step",
         module: "execute",
-        title: "Execute scoped work",
+        title: "Execute work",
         privacy: "sensitive"
       }
     };
@@ -39,10 +39,11 @@ describe("SopNode", () => {
       </ReactFlowProvider>
     );
 
-    expect(screen.getByRole("button", { name: "step: Execute scoped work" }).getAttribute("aria-pressed")).toBe(
+    expect(screen.getByRole("button", { name: "step: Execute work" }).getAttribute("aria-pressed")).toBe(
       "true"
     );
-    expect(screen.getByText("Execute")).toBeTruthy();
+    expect(screen.getByText("Execute work")).toBeTruthy();
+    expect(screen.queryByText("execute")).toBeNull();
     expect(screen.getByText("sensitive")).toBeTruthy();
   });
 

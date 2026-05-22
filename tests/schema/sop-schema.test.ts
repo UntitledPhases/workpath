@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sopGraphSchema } from "../../src/domain/sop/index.js";
+import { SOP_NODE_TITLE_MAX_LENGTH, sopGraphSchema } from "../../src/domain/sop/index.js";
 import { readSeedSop } from "../helpers.js";
 
 describe("native SOP schema", () => {
@@ -56,6 +56,20 @@ describe("native SOP schema", () => {
         ...sop.edges,
         { id: "edge_bad", from: "intent", to: "gate_tests", kind: "produces" }
       ]
+    };
+
+    const result = sopGraphSchema.safeParse(invalid);
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects node titles that exceed the display grammar limit", async () => {
+    const sop = await readSeedSop();
+    const invalid = {
+      ...sop,
+      nodes: sop.nodes.map((node) =>
+        node.id === "intent" ? { ...node, title: "X".repeat(SOP_NODE_TITLE_MAX_LENGTH + 1) } : node
+      )
     };
 
     const result = sopGraphSchema.safeParse(invalid);
