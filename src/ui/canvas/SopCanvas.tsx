@@ -12,10 +12,12 @@ import "@xyflow/react/dist/style.css";
 
 import { processSteps, subprocessForStep, type SopGraph } from "../../domain/sop/index.js";
 import { GateSequenceEdge } from "./GateSequenceEdge.js";
+import { ProcessFrameNode } from "./ProcessFrameNode.js";
 import { SopNode } from "./SopNode.js";
 import { type CanvasScope, type SopFlowNode, toFlowEdges, toFlowNodes } from "./flowModel.js";
 
 const nodeTypes = {
+  processFrame: ProcessFrameNode,
   sopNode: SopNode
 };
 
@@ -41,7 +43,22 @@ export function SopCanvas(props: SopCanvasProps) {
 }
 
 function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenStep, onSelectNode }: SopCanvasProps) {
-  const nodes = useMemo(() => toFlowNodes(sop, scope, selectedNodeId), [scope, sop, selectedNodeId]);
+  const nodes = useMemo(
+    () =>
+      toFlowNodes(sop, scope, selectedNodeId).map((node) => {
+        if (isSopFlowNode(node) && node.data.node.kind === "step" && subprocessForStep(sop, node.id)) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              onOpenStep
+            }
+          };
+        }
+        return node;
+      }),
+    [onOpenStep, scope, sop, selectedNodeId]
+  );
   const edges = useMemo(
     () =>
       toFlowEdges(sop, scope, selectedNodeId).map((edge) =>
@@ -63,11 +80,17 @@ function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenSt
       : undefined;
   const activeStep = scope.kind === "subprocess" ? processSteps(sop).find((node) => node.id === scope.stepId) : undefined;
   const handleNodeClick: NodeMouseHandler = (_, node) => {
-    onSelectNode(node.id);
+    if (isSopFlowNode(node)) {
+      onSelectNode(node.id);
+    }
   };
   const handleNodeDoubleClick: NodeMouseHandler = (_, node) => {
-    const flowNode = node as SopFlowNode;
-    if (scope.kind === "overview" && flowNode.data.node.kind === "step" && subprocessForStep(sop, node.id)) {
+    if (
+      scope.kind === "overview" &&
+      isSopFlowNode(node) &&
+      node.data.node.kind === "step" &&
+      subprocessForStep(sop, node.id)
+    ) {
       onOpenStep(node.id);
     }
   };
@@ -108,6 +131,7 @@ function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenSt
         edgesFocusable={false}
         fitView
         fitViewOptions={{ padding: 0.18 }}
+        zoomOnDoubleClick={false}
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="#cbd5e1" />
         <MiniMap
@@ -126,4 +150,8 @@ function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenSt
       </ReactFlow>
     </div>
   );
+}
+
+function isSopFlowNode(node: { data?: Record<string, unknown>; type?: string }): node is SopFlowNode {
+  return node.type === "sopNode" && typeof node.data?.node === "object" && node.data.node !== null;
 }

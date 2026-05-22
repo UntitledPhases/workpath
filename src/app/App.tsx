@@ -68,7 +68,7 @@ export function App() {
         <div className="status-strip">
           <span>{formatKind(seedSop.kind)}</span>
           <span>6 process nodes</span>
-          <span>{seedSop.subprocesses.length} detail graphs</span>
+          <span>{seedSop.subprocesses.length} nested processes</span>
         </div>
       </header>
       <div className="module-legend" aria-label="Module colors">

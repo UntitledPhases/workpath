@@ -14,9 +14,10 @@ There is no remote, no deployment config, and no runtime agent execution.
 ## Current Slice
 
 Workpath now has the compiler-first path plus a read-only React Flow canvas over
-the native seed SOP. The canvas uses a two-level drilldown grammar: the overview
-shows only lifecycle process steps, while opening a step switches into that
-step's subprocess and its attached gates, evidence, or handoff contracts.
+the native seed SOP. The canvas uses a two-level nested-process grammar: the
+overview shows only lifecycle process steps, while opening a step zooms into a
+large process frame containing that step's child workflow and attached gates,
+evidence, or handoff contracts.
 
 ```powershell
 npm install
@@ -40,9 +41,10 @@ directly. The compiled bundle is an output artifact, not the authoring source.
 
 - `nodes` stores Ideate-compatible process steps, evidence, review gates, and handoffs.
 - `edges` stores the export-facing relationships needed by the compiler.
-- `subprocesses` stores authoring detail graphs keyed by `parent_step_id`.
+- `subprocesses` stores nested process definitions keyed by `parent_step_id`.
 - Overview rendering shows only top-level step sequence.
-- Drilldown rendering shows one selected step's subprocess plus declared attachments.
+- Drilldown rendering shows one selected step as a large nested process frame
+  containing its child workflow plus declared attachments.
 - Process and activity titles are capped at 24 characters so labels can live
   inside nodes; prose belongs in notes and sidebar fields.
 - Strong horizontal arrows mean sequence. Softer directional connectors mean

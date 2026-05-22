@@ -19,6 +19,8 @@ export function SopNode({ data }: NodeProps<SopFlowNode>) {
     .join(" ");
   const privacy = "privacy" in node && node.privacy ? node.privacy : "internal";
   const showPrivacy = "privacy" in node && node.privacy && node.privacy !== data.defaultPrivacy;
+  const openNestedProcess =
+    node.kind === "step" && typeof data.onOpenStep === "function" ? data.onOpenStep : undefined;
 
   return (
     <div
@@ -27,6 +29,14 @@ export function SopNode({ data }: NodeProps<SopFlowNode>) {
       role="button"
       aria-label={`${node.kind}: ${node.title}`}
       aria-pressed={data.selected}
+      onDoubleClick={
+        openNestedProcess
+          ? (event) => {
+              event.stopPropagation();
+              openNestedProcess(node.id);
+            }
+          : undefined
+      }
     >
       <Handle id="target-left" type="target" position={Position.Left} className="node-handle" />
       <Handle id="target-top" type="target" position={Position.Top} className="node-handle" />

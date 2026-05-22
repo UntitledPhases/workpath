@@ -14,6 +14,10 @@ import {
 
 type FlowDisplayNode = SopNode | SubprocessNode;
 type FlowLayer = "overview" | "detail" | "attachment";
+const PROCESS_FRAME_PREFIX = "process-frame:";
+const FRAME_PADDING_X = 120;
+const FRAME_PADDING_TOP = 118;
+const FRAME_PADDING_BOTTOM = 104;
 
 export type CanvasScope =
   | {
@@ -41,8 +45,15 @@ export interface SopFlowNodeData extends Record<string, unknown> {
   defaultPrivacy: PrivacyClassification;
   layer: FlowLayer;
   node: FlowDisplayNode;
+  onOpenStep?: (stepId: string) => void;
   parentStepId?: string;
   selected: boolean;
+}
+
+export interface ProcessFrameNodeData extends Record<string, unknown> {
+  module: string;
+  stepId: string;
+  title: string;
 }
 
 export interface GateEdgeBadge extends Record<string, unknown> {
@@ -58,9 +69,11 @@ export interface SopFlowEdgeData extends Record<string, unknown> {
 }
 
 export type SopFlowNode = Node<SopFlowNodeData>;
+export type ProcessFrameFlowNode = Node<ProcessFrameNodeData>;
+export type WorkpathFlowNode = SopFlowNode | ProcessFrameFlowNode;
 export type SopFlowEdge = Edge<SopFlowEdgeData>;
 
-export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: string): SopFlowNode[] {
+export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: string): WorkpathFlowNode[] {
   const canvasPositions = new Map(sop.canvas.nodes.map((node) => [node.id, node]));
   if (scope.kind === "overview") {
     return processSteps(sop).map((node) => {
@@ -74,20 +87,52 @@ export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: 
     return [];
   }
 
+  const parentStep = processSteps(sop).find((node) => node.id === scope.stepId);
   const dockedGateIds = gateIdsFromBadges(gateBadgesBySequenceEdge(sop, subprocess, selectedNodeId));
   const detailPositions = new Map(subprocess.canvas.nodes.map((node) => [node.id, node]));
-  const nodes: SopFlowNode[] = [];
+  const renderedItems = [
+    ...subprocess.nodes.map((node) => ({ layer: "detail" as const, node })),
+    ...attachedNodesForStep(sop, scope.stepId)
+      .filter((node) => !(node.kind === "gate" && dockedGateIds.has(node.id)))
+      .map((node) => ({ layer: "attachment" as const, node }))
+  ];
+  const frameLayout = nestedProcessFrameLayout(renderedItems, detailPositions, canvasPositions);
+  const frameId = processFrameId(scope.stepId);
+  const nodes: WorkpathFlowNode[] = parentStep
+    ? [toProcessFrameNode(frameId, parentStep.title, parentStep.module, frameLayout.width, frameLayout.height)]
+    : [];
+
   for (const node of subprocess.nodes) {
-    const position = detailPositions.get(node.id) ?? { x: 0, y: 0 };
-    nodes.push(toFlowNode(sop, node, "detail", position, selectedNodeId, scope.stepId));
+    const sourcePosition = detailPositions.get(node.id) ?? { x: 0, y: 0 };
+    nodes.push(
+      toFlowNode(
+        sop,
+        node,
+        "detail",
+        frameLayout.toFramePosition(sourcePosition),
+        selectedNodeId,
+        scope.stepId,
+        frameId
+      )
+    );
   }
 
   for (const node of attachedNodesForStep(sop, scope.stepId)) {
     if (node.kind === "gate" && dockedGateIds.has(node.id)) {
       continue;
     }
-    const position = detailPositions.get(node.id) ?? canvasPositions.get(node.id) ?? { x: 0, y: 0 };
-    nodes.push(toFlowNode(sop, node, "attachment", position, selectedNodeId, scope.stepId));
+    const sourcePosition = detailPositions.get(node.id) ?? canvasPositions.get(node.id) ?? { x: 0, y: 0 };
+    nodes.push(
+      toFlowNode(
+        sop,
+        node,
+        "attachment",
+        frameLayout.toFramePosition(sourcePosition),
+        selectedNodeId,
+        scope.stepId,
+        frameId
+      )
+    );
   }
 
   return nodes;
@@ -129,7 +174,8 @@ function toFlowNode(
   layer: FlowLayer,
   position: { x: number; y: number },
   selectedNodeId: string | undefined,
-  parentStepId?: string
+  parentStepId?: string,
+  frameId?: string
 ): SopFlowNode {
   const dimensions = nodeDimensions(node.kind, layer);
   return {
@@ -149,9 +195,87 @@ function toFlowNode(
       width: dimensions.width,
       height: dimensions.height
     },
+    parentId: frameId,
+    extent: frameId ? "parent" : undefined,
     draggable: false,
     selectable: true
   };
+}
+
+function toProcessFrameNode(
+  id: string,
+  title: string,
+  module: string,
+  width: number,
+  height: number
+): ProcessFrameFlowNode {
+  return {
+    id,
+    type: "processFrame",
+    position: { x: 0, y: 0 },
+    data: {
+      module,
+      stepId: id.replace(PROCESS_FRAME_PREFIX, ""),
+      title
+    },
+    initialWidth: width,
+    initialHeight: height,
+    selectable: false,
+    draggable: false,
+    style: {
+      width,
+      height
+    },
+    zIndex: -1
+  };
+}
+
+function nestedProcessFrameLayout(
+  items: Array<{ layer: FlowLayer; node: FlowDisplayNode }>,
+  detailPositions: Map<string, { x: number; y: number }>,
+  canvasPositions: Map<string, { x: number; y: number }>
+): {
+  height: number;
+  toFramePosition: (position: { x: number; y: number }) => { x: number; y: number };
+  width: number;
+} {
+  if (!items.length) {
+    return {
+      height: 360,
+      toFramePosition: (position) => ({
+        x: position.x + FRAME_PADDING_X,
+        y: position.y + FRAME_PADDING_TOP
+      }),
+      width: 760
+    };
+  }
+
+  const bounds = items.reduce(
+    (current, item) => {
+      const position = detailPositions.get(item.node.id) ?? canvasPositions.get(item.node.id) ?? { x: 0, y: 0 };
+      const dimensions = nodeDimensions(item.node.kind, item.layer);
+      return {
+        maxX: Math.max(current.maxX, position.x + dimensions.width),
+        maxY: Math.max(current.maxY, position.y + dimensions.height),
+        minX: Math.min(current.minX, position.x),
+        minY: Math.min(current.minY, position.y)
+      };
+    },
+    { maxX: -Infinity, maxY: -Infinity, minX: Infinity, minY: Infinity }
+  );
+
+  return {
+    height: bounds.maxY - bounds.minY + FRAME_PADDING_TOP + FRAME_PADDING_BOTTOM,
+    toFramePosition: (position) => ({
+      x: position.x - bounds.minX + FRAME_PADDING_X,
+      y: position.y - bounds.minY + FRAME_PADDING_TOP
+    }),
+    width: bounds.maxX - bounds.minX + FRAME_PADDING_X * 2
+  };
+}
+
+function processFrameId(stepId: string): string {
+  return `${PROCESS_FRAME_PREFIX}${stepId}`;
 }
 
 function nodeDimensions(kind: FlowDisplayNode["kind"], layer: FlowLayer): { width: number; height: number } {

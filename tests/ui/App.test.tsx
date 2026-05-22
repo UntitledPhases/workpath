@@ -133,7 +133,7 @@ describe("App", () => {
     expect(screen.getByTestId("sop-inspector").textContent).not.toContain("Worker handoff");
   });
 
-  it("opens a selected process node into subprocess drilldown and returns to overview", async () => {
+  it("opens a selected process node into nested-process drilldown and returns to overview", async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute work" }));
@@ -149,7 +149,17 @@ describe("App", () => {
     expect(screen.queryByRole("button", { name: "activity: Confirm scope" })).toBeNull();
   });
 
-  it("infers subprocess drilldown for direct attachment selection", async () => {
+  it("opens a nested process on process node double click", async () => {
+    render(<App />);
+
+    fireEvent.doubleClick(await screen.findByRole("button", { name: "step: Execute work" }));
+
+    expect(await screen.findByRole("group", { name: "Nested process: Execute work" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "activity: Delegate worker" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "step: Research context" })).toBeNull();
+  });
+
+  it("infers nested-process drilldown for direct attachment selection", async () => {
     window.history.replaceState(null, "", "/?selected=boundary_codex_worker");
 
     render(<App />);

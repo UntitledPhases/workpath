@@ -23,7 +23,7 @@ export function SopInspector({ sop, selection }: SopInspectorProps) {
         {selection.parentStepId && node.kind !== "step" ? <Meta label="parent_step" value={selection.parentStepId} /> : null}
         {node.notes ? <Meta label="notes" value={node.notes} /> : null}
         {node.kind === "step" ? <Meta label="module" value={node.module} /> : null}
-        {node.kind === "activity" ? <Meta label="role" value="subprocess" /> : null}
+        {node.kind === "activity" ? <Meta label="role" value="nested process" /> : null}
         {node.kind === "gate" ? (
           <>
             <Meta label="gate" value={node.gate_kind} />

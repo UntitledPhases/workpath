@@ -299,6 +299,56 @@ h1 {
   outline-offset: 2px;
 }
 
+.process-frame {
+  background: rgba(248, 250, 252, 0.7);
+  border: 2px solid #94a3b8;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 18px 42px rgba(15, 23, 42, 0.08);
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  width: 100%;
+}
+
+.process-frame-header {
+  align-items: center;
+  background: rgba(241, 245, 249, 0.94);
+  border-bottom: 1px solid #cbd5e1;
+  color: #111827;
+  display: flex;
+  font-size: 18px;
+  font-weight: 850;
+  height: 58px;
+  letter-spacing: 0;
+  padding: 0 22px;
+}
+
+.process-frame-intent {
+  border-color: #2563eb;
+}
+
+.process-frame-research {
+  border-color: #4f46e5;
+}
+
+.process-frame-plan {
+  border-color: #9333ea;
+}
+
+.process-frame-execute {
+  border-color: #16a34a;
+}
+
+.process-frame-verify {
+  border-color: #d97706;
+}
+
+.process-frame-return {
+  border-color: #0f766e;
+}
+
 .canvas-breadcrumb {
   align-items: center;
   display: flex;

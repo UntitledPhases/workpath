@@ -36,13 +36,16 @@ describe("flowModel", () => {
     expect(edges.every((edge) => edge.targetHandle === "target-left")).toBe(true);
   });
 
-  it("projects selected step attachments inside the detail graph", async () => {
+  it("projects selected step attachments inside the nested process", async () => {
     const sop = await readSeedSop();
     const nodes = toFlowNodes(sop, { kind: "subprocess", stepId: "execute" }, "execute");
     const edges = toFlowEdges(sop, { kind: "subprocess", stepId: "execute" }, "execute");
+    const frame = nodes.find((node) => node.id === "process-frame:execute");
     const handoffNode = nodes.find((node) => node.id === "boundary_codex_worker");
     const handoffEdge = edges.find((edge) => edge.id === "edge_execute_delegate_boundary");
 
+    expect(frame?.type).toBe("processFrame");
+    expect(handoffNode?.parentId).toBe("process-frame:execute");
     expect(handoffNode?.data.layer).toBe("attachment");
     expect(handoffNode?.initialWidth).toBeLessThan(100);
     expect(handoffEdge).toMatchObject({
