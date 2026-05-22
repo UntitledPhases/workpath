@@ -5,9 +5,11 @@ import {
   attachedNodesForStep,
   processSteps,
   subprocessForStep,
+  type GateNode,
   type PrivacyClassification,
   type SopGraph,
   type SopNode,
+  type SopSubprocess,
   type SubprocessNode
 } from "../../domain/sop/index.js";
 
@@ -30,8 +32,20 @@ export interface SopFlowNodeData extends Record<string, unknown> {
   selected: boolean;
 }
 
+export interface GateEdgeBadge extends Record<string, unknown> {
+  gateKind: GateNode["gate_kind"];
+  id: string;
+  selected: boolean;
+  title: string;
+}
+
+export interface SopFlowEdgeData extends Record<string, unknown> {
+  gates?: GateEdgeBadge[];
+  onSelectGate?: (gateId: string) => void;
+}
+
 export type SopFlowNode = Node<SopFlowNodeData>;
-export type SopFlowEdge = Edge;
+export type SopFlowEdge = Edge<SopFlowEdgeData>;
 
 export function toFlowNodes(sop: SopGraph, selectedNodeId?: string): SopFlowNode[] {
   const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
@@ -50,6 +64,7 @@ export function toFlowNodes(sop: SopGraph, selectedNodeId?: string): SopFlowNode
     return nodes;
   }
 
+  const dockedGateIds = gateIdsFromBadges(gateBadgesBySequenceEdge(sop, subprocess, selectedNodeId));
   const detailPositions = new Map(subprocess.canvas.nodes.map((node) => [node.id, node]));
   for (const node of subprocess.nodes) {
     const position = detailPositions.get(node.id) ?? { x: 0, y: 0 };
@@ -57,6 +72,9 @@ export function toFlowNodes(sop: SopGraph, selectedNodeId?: string): SopFlowNode
   }
 
   for (const node of attachedNodesForStep(sop, activeStepId)) {
+    if (node.kind === "gate" && dockedGateIds.has(node.id)) {
+      continue;
+    }
     const position = detailPositions.get(node.id) ?? canvasPositions.get(node.id) ?? { x: 0, y: 0 };
     nodes.push(toFlowNode(sop, node, "attachment", position, selectedNodeId, activeStepId));
   }
@@ -79,8 +97,14 @@ export function toFlowEdges(sop: SopGraph, selectedNodeId?: string): SopFlowEdge
     return edges;
   }
 
+  const dockedGatesBySequenceEdge = gateBadgesBySequenceEdge(sop, subprocess, selectedNodeId);
+  const dockedGateIds = gateIdsFromBadges(dockedGatesBySequenceEdge);
   for (const edge of subprocess.edges) {
-    edges.push(toFlowEdge(edge.id, edge.from, edge.to, edge.kind));
+    if (edge.kind === "validates" && dockedGateIds.has(edge.to)) {
+      continue;
+    }
+    const gates = edge.kind === "sequence" ? dockedGatesBySequenceEdge.get(edge.id) : undefined;
+    edges.push(toFlowEdge(edge.id, edge.from, edge.to, edge.kind, gates?.length ? { gates } : undefined));
   }
 
   return edges;
@@ -117,7 +141,13 @@ function toFlowNode(
   };
 }
 
-function toFlowEdge(id: string, source: string, target: string, kind: string): SopFlowEdge {
+function toFlowEdge(
+  id: string,
+  source: string,
+  target: string,
+  kind: string,
+  data?: SopFlowEdgeData
+): SopFlowEdge {
   return {
     id,
     source,
@@ -125,7 +155,8 @@ function toFlowEdge(id: string, source: string, target: string, kind: string): S
     sourceHandle: sourceHandle(kind),
     targetHandle: targetHandle(kind),
     className: `edge-${kind}`,
-    type: "smoothstep",
+    type: kind === "sequence" ? "gateSequence" : "smoothstep",
+    data,
     animated: kind === "gates" || kind === "delegates_to",
     markerEnd: {
       type: MarkerType.ArrowClosed,
@@ -138,6 +169,65 @@ function toFlowEdge(id: string, source: string, target: string, kind: string): S
       strokeDasharray: edgeDash(kind)
     }
   };
+}
+
+function gateBadgesBySequenceEdge(
+  sop: SopGraph,
+  subprocess: SopSubprocess,
+  selectedNodeId?: string
+): Map<string, GateEdgeBadge[]> {
+  const sopNodes = new Map(sop.nodes.map((node) => [node.id, node]));
+  const subprocessEdgesById = new Map(subprocess.edges.map((edge) => [edge.id, edge]));
+  const sequenceEdgeBySource = new Map(
+    subprocess.edges.filter((edge) => edge.kind === "sequence").map((edge) => [edge.from, edge])
+  );
+  const producerByEvidence = new Map(
+    subprocess.edges.filter((edge) => edge.kind === "produces").map((edge) => [edge.to, edge.from])
+  );
+  const badges = new Map<string, GateEdgeBadge[]>();
+
+  for (const attachedNodeId of subprocess.attached_node_ids) {
+    const gate = sopNodes.get(attachedNodeId);
+    if (!gate || gate.kind !== "gate") {
+      continue;
+    }
+    const guardedSequenceEdge = firstGuardedSequenceEdge(gate, producerByEvidence, sequenceEdgeBySource);
+    if (!guardedSequenceEdge || !subprocessEdgesById.has(guardedSequenceEdge.id)) {
+      continue;
+    }
+    const existing = badges.get(guardedSequenceEdge.id) ?? [];
+    existing.push({
+      gateKind: gate.gate_kind,
+      id: gate.id,
+      selected: gate.id === selectedNodeId,
+      title: gate.title
+    });
+    badges.set(guardedSequenceEdge.id, existing);
+  }
+
+  return badges;
+}
+
+function gateIdsFromBadges(badges: Map<string, GateEdgeBadge[]>): Set<string> {
+  return new Set([...badges.values()].flatMap((gates) => gates.map((gate) => gate.id)));
+}
+
+function firstGuardedSequenceEdge(
+  gate: GateNode,
+  producerByEvidence: Map<string, string>,
+  sequenceEdgeBySource: Map<string, { id: string; from: string; to: string; kind: string }>
+): { id: string; from: string; to: string; kind: string } | undefined {
+  for (const evidenceId of gate.required_evidence) {
+    const producerId = producerByEvidence.get(evidenceId);
+    if (!producerId) {
+      continue;
+    }
+    const sequenceEdge = sequenceEdgeBySource.get(producerId);
+    if (sequenceEdge) {
+      return sequenceEdge;
+    }
+  }
+  return undefined;
 }
 
 function sourceHandle(kind: string): string {

@@ -46,15 +46,38 @@ describe("flowModel", () => {
     expect(handoffEdge?.label).toBeUndefined();
   });
 
-  it("routes selected gate and evidence detail edges without visual labels", async () => {
+  it("docks selected gates onto guarded sequence edges without rendering validation branches", async () => {
     const sop = await readSeedSop();
     const edges = toFlowEdges(sop, "plan");
     const gate = edges.find((edge) => edge.id === "edge_reverse_gate_execute");
     const detailGate = edges.find((edge) => edge.id === "edge_plan_artifact_gate");
+    const guardedSequence = edges.find((edge) => edge.id === "edge_plan_reverse_revise");
 
     expect(gate).toBeUndefined();
-    expect(detailGate).toMatchObject({ source: "artifact_reverse_pass", target: "gate_reverse_pass" });
+    expect(detailGate).toBeUndefined();
+    expect(guardedSequence?.data?.gates).toEqual([
+      {
+        gateKind: "reverse_pass",
+        id: "gate_reverse_pass",
+        selected: false,
+        title: "Reverse pass complete"
+      }
+    ]);
     expect(edges.every((edge) => edge.label === undefined)).toBe(true);
+  });
+
+  it("keeps a selected gate visible as a selected transition glyph", async () => {
+    const sop = await readSeedSop();
+    const nodes = toFlowNodes(sop, "gate_reverse_pass");
+    const edges = toFlowEdges(sop, "gate_reverse_pass");
+    const guardedSequence = edges.find((edge) => edge.id === "edge_plan_reverse_revise");
+
+    expect(nodes.some((node) => node.id === "gate_reverse_pass")).toBe(false);
+    expect(nodes.some((node) => node.id === "plan_reverse")).toBe(true);
+    expect(guardedSequence?.data?.gates?.[0]).toMatchObject({
+      id: "gate_reverse_pass",
+      selected: true
+    });
   });
 
   it("routes produced artifacts through subdued vertical connectors", async () => {

@@ -47,6 +47,8 @@ directly. The compiled bundle is an output artifact, not the authoring source.
   inside nodes; prose belongs in notes and sidebar fields.
 - Strong horizontal arrows mean sequence. Softer directional connectors mean
   artifact/control relationships.
+- Gates remain first-class graph nodes, but the canvas renders mapped gates as
+  clickable diamonds on the guarded transition instead of as branch nodes.
 
 ## Boundary
 

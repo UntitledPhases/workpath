@@ -11,11 +11,16 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { activeStepIdForSelection, processSteps, type SopGraph } from "../../domain/sop/index.js";
+import { GateSequenceEdge } from "./GateSequenceEdge.js";
 import { SopNode } from "./SopNode.js";
 import { toFlowEdges, toFlowNodes } from "./flowModel.js";
 
 const nodeTypes = {
   sopNode: SopNode
+};
+
+const edgeTypes = {
+  gateSequence: GateSequenceEdge
 };
 
 interface SopCanvasProps {
@@ -34,7 +39,21 @@ export function SopCanvas(props: SopCanvasProps) {
 
 function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
   const nodes = useMemo(() => toFlowNodes(sop, selectedNodeId), [sop, selectedNodeId]);
-  const edges = useMemo(() => toFlowEdges(sop, selectedNodeId), [sop, selectedNodeId]);
+  const edges = useMemo(
+    () =>
+      toFlowEdges(sop, selectedNodeId).map((edge) =>
+        edge.data?.gates?.length
+          ? {
+              ...edge,
+              data: {
+                ...edge.data,
+                onSelectGate: onSelectNode
+              }
+            }
+          : edge
+      ),
+    [onSelectNode, sop, selectedNodeId]
+  );
   const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
   const activeStep = activeStepId ? processSteps(sop).find((node) => node.id === activeStepId) : undefined;
   const handleNodeClick: NodeMouseHandler = (_, node) => {
@@ -51,6 +70,7 @@ function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
         onPaneClick={() => onSelectNode(undefined)}
         nodesDraggable={false}
