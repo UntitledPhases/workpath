@@ -10,10 +10,10 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { activeStepIdForSelection, processSteps, type SopGraph } from "../../domain/sop/index.js";
+import { processSteps, subprocessForStep, type SopGraph } from "../../domain/sop/index.js";
 import { GateSequenceEdge } from "./GateSequenceEdge.js";
 import { SopNode } from "./SopNode.js";
-import { toFlowEdges, toFlowNodes } from "./flowModel.js";
+import { type CanvasScope, type SopFlowNode, toFlowEdges, toFlowNodes } from "./flowModel.js";
 
 const nodeTypes = {
   sopNode: SopNode
@@ -24,8 +24,11 @@ const edgeTypes = {
 };
 
 interface SopCanvasProps {
+  scope: CanvasScope;
   sop: SopGraph;
   selectedNodeId?: string;
+  onBackToOverview: () => void;
+  onOpenStep: (stepId: string) => void;
   onSelectNode: (nodeId?: string) => void;
 }
 
@@ -37,11 +40,11 @@ export function SopCanvas(props: SopCanvasProps) {
   );
 }
 
-function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
-  const nodes = useMemo(() => toFlowNodes(sop, selectedNodeId), [sop, selectedNodeId]);
+function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenStep, onSelectNode }: SopCanvasProps) {
+  const nodes = useMemo(() => toFlowNodes(sop, scope, selectedNodeId), [scope, sop, selectedNodeId]);
   const edges = useMemo(
     () =>
-      toFlowEdges(sop, selectedNodeId).map((edge) =>
+      toFlowEdges(sop, scope, selectedNodeId).map((edge) =>
         edge.data?.gates?.length
           ? {
               ...edge,
@@ -52,26 +55,53 @@ function SopCanvasInner({ sop, selectedNodeId, onSelectNode }: SopCanvasProps) {
             }
           : edge
       ),
-    [onSelectNode, sop, selectedNodeId]
+    [onSelectNode, scope, sop, selectedNodeId]
   );
-  const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
-  const activeStep = activeStepId ? processSteps(sop).find((node) => node.id === activeStepId) : undefined;
+  const selectedStep =
+    scope.kind === "overview"
+      ? processSteps(sop).find((node) => node.id === selectedNodeId && subprocessForStep(sop, node.id))
+      : undefined;
+  const activeStep = scope.kind === "subprocess" ? processSteps(sop).find((node) => node.id === scope.stepId) : undefined;
   const handleNodeClick: NodeMouseHandler = (_, node) => {
     onSelectNode(node.id);
   };
+  const handleNodeDoubleClick: NodeMouseHandler = (_, node) => {
+    const flowNode = node as SopFlowNode;
+    if (scope.kind === "overview" && flowNode.data.node.kind === "step" && subprocessForStep(sop, node.id)) {
+      onOpenStep(node.id);
+    }
+  };
 
   return (
-    <div className="canvas-shell" data-testid="sop-canvas">
-      <div className="canvas-layer-badges" aria-hidden="true">
-        <span>Overview</span>
-        {activeStep ? <span>Detail: {activeStep.title}</span> : null}
+    <div className={`canvas-shell canvas-shell-${scope.kind}`} data-testid="sop-canvas">
+      <div className="canvas-breadcrumb" aria-label="Canvas view">
+        {scope.kind === "subprocess" ? (
+          <button type="button" onClick={onBackToOverview}>
+            Project SOP
+          </button>
+        ) : (
+          <span>Project SOP</span>
+        )}
+        {activeStep ? (
+          <>
+            <span aria-hidden="true">/</span>
+            <span>{activeStep.title}</span>
+          </>
+        ) : null}
+        {selectedStep ? (
+          <button type="button" onClick={() => onOpenStep(selectedStep.id)}>
+            Open {selectedStep.title}
+          </button>
+        ) : null}
       </div>
       <ReactFlow
+        key={scope.kind === "overview" ? "overview" : `subprocess-${scope.stepId}`}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
         onPaneClick={() => onSelectNode(undefined)}
         nodesDraggable={false}
         nodesConnectable={false}

@@ -1,8 +1,9 @@
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 
 import { seedSop } from "./seed.js";
-import { findSopSelection } from "../domain/sop/index.js";
+import { findSopSelection, subprocessForStep } from "../domain/sop/index.js";
 import { SopCanvas } from "../ui/canvas/SopCanvas.js";
+import { type CanvasScope } from "../ui/canvas/flowModel.js";
 import { SopInspector } from "../ui/side-panel/SopInspector.js";
 
 const MODULE_LEGEND = [
@@ -15,14 +16,47 @@ const MODULE_LEGEND = [
 ];
 
 export function App() {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(initialSelectedNodeId());
+  const initialState = useMemo(() => initialAppState(), []);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(initialState.selectedNodeId);
+  const [viewStepId, setViewStepId] = useState<string | undefined>(initialState.viewStepId);
   const selected = findSopSelection(seedSop, selectedNodeId);
+  const scope: CanvasScope = viewStepId ? { kind: "subprocess", stepId: viewStepId } : { kind: "overview" };
   const srNodes = [
     ...seedSop.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title })),
     ...seedSop.subprocesses.flatMap((subprocess) =>
       subprocess.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title }))
     )
   ];
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("view", viewStepId ?? "overview");
+    if (selectedNodeId) {
+      params.set("selected", selectedNodeId);
+    }
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+  }, [selectedNodeId, viewStepId]);
+
+  function handleSelectNode(nodeId?: string) {
+    const selection = findSopSelection(seedSop, nodeId);
+    if (selection?.parentStepId && selection.node.kind !== "step") {
+      setViewStepId(selection.parentStepId);
+    }
+    setSelectedNodeId(nodeId);
+  }
+
+  function handleOpenStep(stepId: string) {
+    if (!subprocessForStep(seedSop, stepId)) {
+      return;
+    }
+    setViewStepId(stepId);
+    setSelectedNodeId(stepId);
+  }
+
+  function handleBackToOverview() {
+    setSelectedNodeId(viewStepId ?? seedSop.entry_node_id);
+    setViewStepId(undefined);
+  }
 
   return (
     <main className="app-shell">
@@ -53,22 +87,53 @@ export function App() {
               type="button"
               aria-label={`Select ${node.kind}: ${node.title}`}
               aria-pressed={node.id === selectedNodeId}
-              onClick={() => setSelectedNodeId(node.id)}
+              onClick={() => handleSelectNode(node.id)}
             >
               {node.title}
             </button>
           ))}
         </nav>
-        <SopCanvas sop={seedSop} selectedNodeId={selectedNodeId} onSelectNode={setSelectedNodeId} />
+        <SopCanvas
+          scope={scope}
+          sop={seedSop}
+          selectedNodeId={selectedNodeId}
+          onBackToOverview={handleBackToOverview}
+          onOpenStep={handleOpenStep}
+          onSelectNode={handleSelectNode}
+        />
         <SopInspector sop={seedSop} selection={selected} />
       </section>
     </main>
   );
 }
 
-function initialSelectedNodeId(): string {
-  const selected = new URLSearchParams(window.location.search).get("selected");
-  return selected && findSopSelection(seedSop, selected) ? selected : seedSop.entry_node_id;
+function initialAppState(): { selectedNodeId: string; viewStepId?: string } {
+  const params = new URLSearchParams(window.location.search);
+  const requestedView = params.get("view");
+  const requestedSelection = params.get("selected");
+  let selectedNodeId =
+    requestedSelection && findSopSelection(seedSop, requestedSelection) ? requestedSelection : seedSop.entry_node_id;
+  let viewStepId =
+    requestedView && requestedView !== "overview" && subprocessForStep(seedSop, requestedView)
+      ? requestedView
+      : undefined;
+
+  const selected = findSopSelection(seedSop, selectedNodeId);
+  if (!viewStepId && selected?.parentStepId && selected.node.kind !== "step") {
+    viewStepId = selected.parentStepId;
+  }
+
+  if (viewStepId) {
+    const scopedSelection = findSopSelection(seedSop, selectedNodeId);
+    const selectedBelongsToScope =
+      scopedSelection?.parentStepId === viewStepId ||
+      (scopedSelection?.node.kind === "step" && scopedSelection.node.id === viewStepId);
+    if (!selectedBelongsToScope) {
+      selectedNodeId = viewStepId;
+    }
+  }
+
+  return { selectedNodeId, viewStepId };
 }
 
 function formatKind(kind: string): string {

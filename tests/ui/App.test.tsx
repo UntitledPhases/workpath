@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach } from "vitest";
 
 import { App } from "../../src/app/App.js";
 
@@ -90,6 +91,10 @@ Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
 });
 
 describe("App", () => {
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/");
+  });
+
   it("renders the native seed SOP and updates the inspector from canvas selection", async () => {
     render(<App />);
 
@@ -126,5 +131,30 @@ describe("App", () => {
     fireEvent.click(pane);
 
     expect(screen.getByTestId("sop-inspector").textContent).not.toContain("Worker handoff");
+  });
+
+  it("opens a selected process node into subprocess drilldown and returns to overview", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute work" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open Execute work" }));
+
+    expect(await screen.findByRole("button", { name: "activity: Confirm scope" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "activity: Delegate worker" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "step: Extract intent" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Project SOP" }));
+
+    expect(await screen.findByRole("button", { name: "step: Extract intent" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "activity: Confirm scope" })).toBeNull();
+  });
+
+  it("infers subprocess drilldown for direct attachment selection", async () => {
+    window.history.replaceState(null, "", "/?selected=boundary_codex_worker");
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: "activity: Delegate worker" })).toBeTruthy();
+    expect(screen.getByTestId("sop-inspector").textContent).toContain("Worker handoff");
   });
 });

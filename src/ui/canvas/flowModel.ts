@@ -1,7 +1,6 @@
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
 import {
-  activeStepIdForSelection,
   attachedNodesForStep,
   processSteps,
   subprocessForStep,
@@ -15,6 +14,15 @@ import {
 
 type FlowDisplayNode = SopNode | SubprocessNode;
 type FlowLayer = "overview" | "detail" | "attachment";
+
+export type CanvasScope =
+  | {
+      kind: "overview";
+    }
+  | {
+      kind: "subprocess";
+      stepId: string;
+    };
 
 const NODE_DIMENSIONS: Record<FlowDisplayNode["kind"], { width: number; height: number }> = {
   step: { width: 172, height: 88 },
@@ -52,56 +60,56 @@ export interface SopFlowEdgeData extends Record<string, unknown> {
 export type SopFlowNode = Node<SopFlowNodeData>;
 export type SopFlowEdge = Edge<SopFlowEdgeData>;
 
-export function toFlowNodes(sop: SopGraph, selectedNodeId?: string): SopFlowNode[] {
-  const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
+export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: string): SopFlowNode[] {
   const canvasPositions = new Map(sop.canvas.nodes.map((node) => [node.id, node]));
-  const nodes: SopFlowNode[] = processSteps(sop).map((node) => {
-    const position = canvasPositions.get(node.id) ?? { x: 0, y: 0 };
-    return toFlowNode(sop, node, "overview", position, selectedNodeId, node.id);
-  });
-
-  if (!activeStepId) {
-    return nodes;
+  if (scope.kind === "overview") {
+    return processSteps(sop).map((node) => {
+      const position = canvasPositions.get(node.id) ?? { x: 0, y: 0 };
+      return toFlowNode(sop, node, "overview", position, selectedNodeId, node.id);
+    });
   }
 
-  const subprocess = subprocessForStep(sop, activeStepId);
+  const subprocess = subprocessForStep(sop, scope.stepId);
   if (!subprocess) {
-    return nodes;
+    return [];
   }
 
   const dockedGateIds = gateIdsFromBadges(gateBadgesBySequenceEdge(sop, subprocess, selectedNodeId));
   const detailPositions = new Map(subprocess.canvas.nodes.map((node) => [node.id, node]));
+  const nodes: SopFlowNode[] = [];
   for (const node of subprocess.nodes) {
     const position = detailPositions.get(node.id) ?? { x: 0, y: 0 };
-    nodes.push(toFlowNode(sop, node, "detail", position, selectedNodeId, activeStepId));
+    nodes.push(toFlowNode(sop, node, "detail", position, selectedNodeId, scope.stepId));
   }
 
-  for (const node of attachedNodesForStep(sop, activeStepId)) {
+  for (const node of attachedNodesForStep(sop, scope.stepId)) {
     if (node.kind === "gate" && dockedGateIds.has(node.id)) {
       continue;
     }
     const position = detailPositions.get(node.id) ?? canvasPositions.get(node.id) ?? { x: 0, y: 0 };
-    nodes.push(toFlowNode(sop, node, "attachment", position, selectedNodeId, activeStepId));
+    nodes.push(toFlowNode(sop, node, "attachment", position, selectedNodeId, scope.stepId));
   }
 
   return nodes;
 }
 
-export function toFlowEdges(sop: SopGraph, selectedNodeId?: string): SopFlowEdge[] {
-  const edges: SopFlowEdge[] = sop.edges
-    .filter((edge) => {
-      const from = sop.nodes.find((node) => node.id === edge.from);
-      const to = sop.nodes.find((node) => node.id === edge.to);
-      return edge.kind === "produces" && from?.kind === "step" && to?.kind === "step";
-    })
-    .map((edge) => toFlowEdge(edge.id, edge.from, edge.to, "sequence"));
-
-  const activeStepId = activeStepIdForSelection(sop, selectedNodeId);
-  const subprocess = activeStepId ? subprocessForStep(sop, activeStepId) : undefined;
-  if (!subprocess) {
-    return edges;
+export function toFlowEdges(sop: SopGraph, scope: CanvasScope, selectedNodeId?: string): SopFlowEdge[] {
+  if (scope.kind === "overview") {
+    return sop.edges
+      .filter((edge) => {
+        const from = sop.nodes.find((node) => node.id === edge.from);
+        const to = sop.nodes.find((node) => node.id === edge.to);
+        return edge.kind === "produces" && from?.kind === "step" && to?.kind === "step";
+      })
+      .map((edge) => toFlowEdge(edge.id, edge.from, edge.to, "sequence"));
   }
 
+  const subprocess = subprocessForStep(sop, scope.stepId);
+  if (!subprocess) {
+    return [];
+  }
+
+  const edges: SopFlowEdge[] = [];
   const dockedGatesBySequenceEdge = gateBadgesBySequenceEdge(sop, subprocess, selectedNodeId);
   const dockedGateIds = gateIdsFromBadges(dockedGatesBySequenceEdge);
   for (const edge of subprocess.edges) {

@@ -117,9 +117,7 @@ h1 {
 }
 
 .react-flow {
-  background:
-    linear-gradient(to bottom, transparent 0 43%, #dbe3ef 43%, #dbe3ef calc(43% + 1px), transparent calc(43% + 1px)),
-    linear-gradient(to bottom, #f8fafc 0, #f8fafc 43%, #f3f6fa 43%, #f3f6fa 100%);
+  background: #f8fafc;
 }
 
 .react-flow__attribution {
@@ -301,27 +299,43 @@ h1 {
   outline-offset: 2px;
 }
 
-.canvas-layer-badges {
+.canvas-breadcrumb {
+  align-items: center;
   display: flex;
   gap: 8px;
   left: 16px;
-  pointer-events: none;
   position: absolute;
   top: 14px;
   z-index: 5;
 }
 
-.canvas-layer-badges span {
+.canvas-breadcrumb span,
+.canvas-breadcrumb button {
   background: rgba(248, 250, 252, 0.92);
   border: 1px solid #cbd5e1;
   border-radius: 999px;
   color: #475569;
   font-size: 11px;
   font-weight: 800;
+  line-height: 1;
   padding: 5px 9px;
 }
 
-.canvas-layer-badges span:last-child {
+.canvas-breadcrumb button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.canvas-breadcrumb button:hover,
+.canvas-breadcrumb button:focus-visible {
+  border-color: #64748b;
+  color: #111827;
+  outline: 2px solid #94a3b8;
+  outline-offset: 2px;
+}
+
+.canvas-breadcrumb span:last-child,
+.canvas-breadcrumb button:last-child {
   background: rgba(241, 245, 249, 0.96);
   color: #111827;
 }

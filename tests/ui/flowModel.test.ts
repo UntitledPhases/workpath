@@ -4,22 +4,24 @@ import { toFlowEdges, toFlowNodes } from "../../src/ui/canvas/flowModel.js";
 import { readSeedSop } from "../helpers.js";
 
 describe("flowModel", () => {
-  it("projects overview plus selected subprocess nodes with explicit dimensions for minimap measurement", async () => {
+  it("projects overview nodes without subprocess internals", async () => {
     const sop = await readSeedSop();
-    const nodes = toFlowNodes(sop, "intent");
+    const nodes = toFlowNodes(sop, { kind: "overview" }, "intent");
     const intent = nodes.find((node) => node.id === "intent");
 
     expect(intent?.initialWidth).toBeGreaterThan(0);
     expect(intent?.initialHeight).toBeGreaterThan(0);
     expect(intent?.style).toMatchObject({ width: expect.any(Number), height: expect.any(Number) });
     expect(intent?.data.defaultPrivacy).toBe("internal");
-    expect(nodes.some((node) => node.id === "intent_goal" && node.data.layer === "detail")).toBe(true);
+    expect(nodes).toHaveLength(6);
+    expect(nodes.every((node) => node.data.layer === "overview")).toBe(true);
+    expect(nodes.some((node) => node.id === "intent_goal")).toBe(false);
     expect(nodes.every((node) => node.data.layer !== "attachment")).toBe(true);
   });
 
   it("keeps the overview to lifecycle sequence edges only", async () => {
     const sop = await readSeedSop();
-    const edges = toFlowEdges(sop);
+    const edges = toFlowEdges(sop, { kind: "overview" });
     const edgeIds = edges.map((edge) => edge.id);
 
     expect(edgeIds).toEqual([
@@ -36,8 +38,8 @@ describe("flowModel", () => {
 
   it("projects selected step attachments inside the detail graph", async () => {
     const sop = await readSeedSop();
-    const nodes = toFlowNodes(sop, "execute");
-    const edges = toFlowEdges(sop, "execute");
+    const nodes = toFlowNodes(sop, { kind: "subprocess", stepId: "execute" }, "execute");
+    const edges = toFlowEdges(sop, { kind: "subprocess", stepId: "execute" }, "execute");
     const handoffNode = nodes.find((node) => node.id === "boundary_codex_worker");
     const handoffEdge = edges.find((edge) => edge.id === "edge_execute_delegate_boundary");
 
@@ -56,19 +58,15 @@ describe("flowModel", () => {
 
   it("keeps execute handoff as a side object instead of a process step", async () => {
     const sop = await readSeedSop();
-    const nodes = toFlowNodes(sop, "execute");
+    const nodes = toFlowNodes(sop, { kind: "subprocess", stepId: "execute" }, "execute");
     const nodeIds = nodes.map((node) => node.id);
-    const edges = toFlowEdges(sop, "execute");
+    const edges = toFlowEdges(sop, { kind: "subprocess", stepId: "execute" }, "execute");
     const sequenceEdges = edges.filter((edge) => edge.className === "edge-sequence").map((edge) => edge.id);
 
+    expect(nodeIds).not.toContain("execute");
     expect(nodeIds).not.toContain("execute_handoff_contract");
     expect(nodeIds).not.toContain("execute_receive_return");
     expect(sequenceEdges).toEqual([
-      "edge_intent_research",
-      "edge_research_plan",
-      "edge_plan_execute",
-      "edge_execute_verify",
-      "edge_verify_return",
       "edge_execute_scope_delegate",
       "edge_execute_delegate_integrate"
     ]);
@@ -76,7 +74,7 @@ describe("flowModel", () => {
 
   it("docks selected gates onto guarded sequence edges without rendering validation branches", async () => {
     const sop = await readSeedSop();
-    const edges = toFlowEdges(sop, "plan");
+    const edges = toFlowEdges(sop, { kind: "subprocess", stepId: "plan" }, "plan");
     const gate = edges.find((edge) => edge.id === "edge_reverse_gate_execute");
     const detailGate = edges.find((edge) => edge.id === "edge_plan_artifact_gate");
     const guardedSequence = edges.find((edge) => edge.id === "edge_plan_reverse_revise");
@@ -96,8 +94,8 @@ describe("flowModel", () => {
 
   it("keeps a selected gate visible as a selected transition glyph", async () => {
     const sop = await readSeedSop();
-    const nodes = toFlowNodes(sop, "gate_reverse_pass");
-    const edges = toFlowEdges(sop, "gate_reverse_pass");
+    const nodes = toFlowNodes(sop, { kind: "subprocess", stepId: "plan" }, "gate_reverse_pass");
+    const edges = toFlowEdges(sop, { kind: "subprocess", stepId: "plan" }, "gate_reverse_pass");
     const guardedSequence = edges.find((edge) => edge.id === "edge_plan_reverse_revise");
 
     expect(nodes.some((node) => node.id === "gate_reverse_pass")).toBe(false);
@@ -110,7 +108,7 @@ describe("flowModel", () => {
 
   it("routes produced artifacts through subdued vertical connectors", async () => {
     const sop = await readSeedSop();
-    const edges = toFlowEdges(sop, "plan");
+    const edges = toFlowEdges(sop, { kind: "subprocess", stepId: "plan" }, "plan");
     const artifactEdge = edges.find((edge) => edge.id === "edge_plan_reverse_artifact");
 
     expect(artifactEdge).toMatchObject({
@@ -125,7 +123,7 @@ describe("flowModel", () => {
 
   it("places produced artifacts directly under their producer activity", async () => {
     const sop = await readSeedSop();
-    const nodes = toFlowNodes(sop, "plan");
+    const nodes = toFlowNodes(sop, { kind: "subprocess", stepId: "plan" }, "plan");
     const reversePass = nodes.find((node) => node.id === "plan_reverse");
     const artifact = nodes.find((node) => node.id === "artifact_reverse_pass");
 
