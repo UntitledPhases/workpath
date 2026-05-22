@@ -437,7 +437,7 @@
           },
           {
             "id": "artifact_reverse_pass",
-            "x": 520,
+            "x": 660,
             "y": 500
           },
           {
@@ -463,54 +463,32 @@
           "kind": "activity"
         },
         {
-          "id": "execute_handoff_contract",
-          "title": "Create handoff",
-          "kind": "activity"
-        },
-        {
           "id": "execute_delegate_worker",
           "title": "Delegate worker",
           "kind": "activity"
         },
         {
-          "id": "execute_receive_return",
-          "title": "Receive return",
-          "kind": "activity"
-        },
-        {
           "id": "execute_integrate",
-          "title": "Integrate changes",
+          "title": "Integrate return",
           "kind": "activity"
         }
       ],
       "edges": [
         {
-          "id": "edge_execute_scope_contract",
+          "id": "edge_execute_scope_delegate",
           "from": "execute_confirm_scope",
-          "to": "execute_handoff_contract",
-          "kind": "sequence"
-        },
-        {
-          "id": "edge_execute_contract_boundary",
-          "from": "execute_handoff_contract",
-          "to": "boundary_codex_worker",
-          "kind": "delegates_to"
-        },
-        {
-          "id": "edge_execute_contract_delegate",
-          "from": "execute_handoff_contract",
           "to": "execute_delegate_worker",
           "kind": "sequence"
         },
         {
-          "id": "edge_execute_delegate_return",
+          "id": "edge_execute_delegate_boundary",
           "from": "execute_delegate_worker",
-          "to": "execute_receive_return",
-          "kind": "sequence"
+          "to": "boundary_codex_worker",
+          "kind": "delegates_to"
         },
         {
-          "id": "edge_execute_return_integrate",
-          "from": "execute_receive_return",
+          "id": "edge_execute_delegate_integrate",
+          "from": "execute_delegate_worker",
           "to": "execute_integrate",
           "kind": "sequence"
         }
@@ -522,32 +500,22 @@
         "nodes": [
           {
             "id": "execute_confirm_scope",
-            "x": 180,
+            "x": 260,
             "y": 330
           },
           {
-            "id": "execute_handoff_contract",
-            "x": 400,
+            "id": "execute_delegate_worker",
+            "x": 540,
             "y": 330
           },
           {
             "id": "boundary_codex_worker",
-            "x": 520,
-            "y": 500
-          },
-          {
-            "id": "execute_delegate_worker",
-            "x": 620,
-            "y": 330
-          },
-          {
-            "id": "execute_receive_return",
-            "x": 840,
-            "y": 330
+            "x": 760,
+            "y": 430
           },
           {
             "id": "execute_integrate",
-            "x": 1060,
+            "x": 820,
             "y": 330
           }
         ]
@@ -612,7 +580,7 @@
           },
           {
             "id": "artifact_tests_passed",
-            "x": 500,
+            "x": 320,
             "y": 500
           },
           {

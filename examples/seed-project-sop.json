@@ -191,7 +191,7 @@
           { "id": "plan_decompose", "x": 180, "y": 330 },
           { "id": "plan_forward", "x": 400, "y": 330 },
           { "id": "plan_reverse", "x": 620, "y": 330 },
-          { "id": "artifact_reverse_pass", "x": 520, "y": 500 },
+          { "id": "artifact_reverse_pass", "x": 660, "y": 500 },
           { "id": "gate_reverse_pass", "x": 740, "y": 500 },
           { "id": "plan_revise", "x": 960, "y": 330 }
         ]
@@ -202,27 +202,21 @@
       "title": "Execute subprocess",
       "nodes": [
         { "id": "execute_confirm_scope", "kind": "activity", "title": "Confirm scope" },
-        { "id": "execute_handoff_contract", "kind": "activity", "title": "Create handoff" },
         { "id": "execute_delegate_worker", "kind": "activity", "title": "Delegate worker" },
-        { "id": "execute_receive_return", "kind": "activity", "title": "Receive return" },
-        { "id": "execute_integrate", "kind": "activity", "title": "Integrate changes" }
+        { "id": "execute_integrate", "kind": "activity", "title": "Integrate return" }
       ],
       "edges": [
-        { "id": "edge_execute_scope_contract", "from": "execute_confirm_scope", "to": "execute_handoff_contract", "kind": "sequence" },
-        { "id": "edge_execute_contract_boundary", "from": "execute_handoff_contract", "to": "boundary_codex_worker", "kind": "delegates_to" },
-        { "id": "edge_execute_contract_delegate", "from": "execute_handoff_contract", "to": "execute_delegate_worker", "kind": "sequence" },
-        { "id": "edge_execute_delegate_return", "from": "execute_delegate_worker", "to": "execute_receive_return", "kind": "sequence" },
-        { "id": "edge_execute_return_integrate", "from": "execute_receive_return", "to": "execute_integrate", "kind": "sequence" }
+        { "id": "edge_execute_scope_delegate", "from": "execute_confirm_scope", "to": "execute_delegate_worker", "kind": "sequence" },
+        { "id": "edge_execute_delegate_boundary", "from": "execute_delegate_worker", "to": "boundary_codex_worker", "kind": "delegates_to" },
+        { "id": "edge_execute_delegate_integrate", "from": "execute_delegate_worker", "to": "execute_integrate", "kind": "sequence" }
       ],
       "attached_node_ids": ["boundary_codex_worker"],
       "canvas": {
         "nodes": [
-          { "id": "execute_confirm_scope", "x": 180, "y": 330 },
-          { "id": "execute_handoff_contract", "x": 400, "y": 330 },
-          { "id": "boundary_codex_worker", "x": 520, "y": 500 },
-          { "id": "execute_delegate_worker", "x": 620, "y": 330 },
-          { "id": "execute_receive_return", "x": 840, "y": 330 },
-          { "id": "execute_integrate", "x": 1060, "y": 330 }
+          { "id": "execute_confirm_scope", "x": 260, "y": 330 },
+          { "id": "execute_delegate_worker", "x": 540, "y": 330 },
+          { "id": "boundary_codex_worker", "x": 760, "y": 430 },
+          { "id": "execute_integrate", "x": 820, "y": 330 }
         ]
       }
     },
@@ -244,7 +238,7 @@
       "canvas": {
         "nodes": [
           { "id": "verify_run_checks", "x": 280, "y": 330 },
-          { "id": "artifact_tests_passed", "x": 500, "y": 500 },
+          { "id": "artifact_tests_passed", "x": 320, "y": 500 },
           { "id": "gate_tests", "x": 720, "y": 500 },
           { "id": "verify_inspect_outputs", "x": 720, "y": 330 },
           { "id": "verify_validate_evidence", "x": 940, "y": 330 }

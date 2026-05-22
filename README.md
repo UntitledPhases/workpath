@@ -49,6 +49,8 @@ directly. The compiled bundle is an output artifact, not the authoring source.
   artifact/control relationships.
 - Gates remain first-class graph nodes, but the canvas renders mapped gates as
   clickable diamonds on the guarded transition instead of as branch nodes.
+- Handoff boundaries render as side-docked ports off the activity that delegates
+  work, while the boundary record remains available in the inspector/export.
 
 ## Boundary
 
@@ -60,6 +62,8 @@ that graph into validated workflow records.
 
 - Slice 1 complete: compiler, schemas, seed SOP, exported example, Ideate validation.
 - Slice 2 complete: read-only React Flow canvas over the seed SOP.
+- Slice 2.5d backlog: make the overview/detail split graph-anchored instead of
+  viewport-fixed so it moves naturally with the canvas.
 - Slice 3: editing, ZIP export, and browser-to-Ideate validation loop.
 
 ## Local-Only Discipline

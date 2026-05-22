@@ -39,11 +39,39 @@ describe("flowModel", () => {
     const nodes = toFlowNodes(sop, "execute");
     const edges = toFlowEdges(sop, "execute");
     const handoffNode = nodes.find((node) => node.id === "boundary_codex_worker");
-    const handoffEdge = edges.find((edge) => edge.id === "edge_execute_contract_boundary");
+    const handoffEdge = edges.find((edge) => edge.id === "edge_execute_delegate_boundary");
 
     expect(handoffNode?.data.layer).toBe("attachment");
-    expect(handoffEdge).toMatchObject({ source: "execute_handoff_contract", target: "boundary_codex_worker" });
+    expect(handoffNode?.initialWidth).toBeLessThan(100);
+    expect(handoffEdge).toMatchObject({
+      source: "execute_delegate_worker",
+      sourceHandle: "source-right",
+      target: "boundary_codex_worker",
+      targetHandle: "target-left",
+      className: "edge-delegates_to"
+    });
+    expect(handoffEdge?.style).toMatchObject({ strokeDasharray: "5 5" });
     expect(handoffEdge?.label).toBeUndefined();
+  });
+
+  it("keeps execute handoff as a side object instead of a process step", async () => {
+    const sop = await readSeedSop();
+    const nodes = toFlowNodes(sop, "execute");
+    const nodeIds = nodes.map((node) => node.id);
+    const edges = toFlowEdges(sop, "execute");
+    const sequenceEdges = edges.filter((edge) => edge.className === "edge-sequence").map((edge) => edge.id);
+
+    expect(nodeIds).not.toContain("execute_handoff_contract");
+    expect(nodeIds).not.toContain("execute_receive_return");
+    expect(sequenceEdges).toEqual([
+      "edge_intent_research",
+      "edge_research_plan",
+      "edge_plan_execute",
+      "edge_execute_verify",
+      "edge_verify_return",
+      "edge_execute_scope_delegate",
+      "edge_execute_delegate_integrate"
+    ]);
   });
 
   it("docks selected gates onto guarded sequence edges without rendering validation branches", async () => {
@@ -93,5 +121,17 @@ describe("flowModel", () => {
       className: "edge-produces"
     });
     expect(artifactEdge?.style).toMatchObject({ strokeWidth: 1.6 });
+  });
+
+  it("places produced artifacts directly under their producer activity", async () => {
+    const sop = await readSeedSop();
+    const nodes = toFlowNodes(sop, "plan");
+    const reversePass = nodes.find((node) => node.id === "plan_reverse");
+    const artifact = nodes.find((node) => node.id === "artifact_reverse_pass");
+
+    const reverseCenter = (reversePass?.position.x ?? 0) + (Number(reversePass?.style?.width) || 0) / 2;
+    const artifactCenter = (artifact?.position.x ?? 0) + (Number(artifact?.style?.width) || 0) / 2;
+
+    expect(Math.abs(reverseCenter - artifactCenter)).toBeLessThanOrEqual(8);
   });
 });

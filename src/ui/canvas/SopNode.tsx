@@ -4,7 +4,10 @@ import { type SopFlowNode } from "./flowModel.js";
 
 export function SopNode({ data }: NodeProps<SopFlowNode>) {
   const node = data.node;
-  const showTitle = node.kind === "step" || node.kind === "activity" || node.kind === "boundary";
+  const showTitle =
+    node.kind === "step" ||
+    node.kind === "activity" ||
+    (node.kind === "boundary" && data.layer !== "attachment");
   const className = [
     "sop-node",
     `sop-node-${node.kind}`,

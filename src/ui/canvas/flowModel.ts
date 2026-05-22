@@ -24,6 +24,11 @@ const NODE_DIMENSIONS: Record<FlowDisplayNode["kind"], { width: number; height: 
   activity: { width: 176, height: 86 }
 };
 
+const ATTACHMENT_NODE_DIMENSIONS: Partial<Record<FlowDisplayNode["kind"], { width: number; height: number }>> = {
+  boundary: { width: 86, height: 66 },
+  evidence: { width: 96, height: 72 }
+};
+
 export interface SopFlowNodeData extends Record<string, unknown> {
   defaultPrivacy: PrivacyClassification;
   layer: FlowLayer;
@@ -118,7 +123,7 @@ function toFlowNode(
   selectedNodeId: string | undefined,
   parentStepId?: string
 ): SopFlowNode {
-  const dimensions = NODE_DIMENSIONS[node.kind];
+  const dimensions = nodeDimensions(node.kind, layer);
   return {
     id: node.id,
     type: "sopNode",
@@ -139,6 +144,13 @@ function toFlowNode(
     draggable: false,
     selectable: true
   };
+}
+
+function nodeDimensions(kind: FlowDisplayNode["kind"], layer: FlowLayer): { width: number; height: number } {
+  if (layer === "attachment") {
+    return ATTACHMENT_NODE_DIMENSIONS[kind] ?? NODE_DIMENSIONS[kind];
+  }
+  return NODE_DIMENSIONS[kind];
 }
 
 function toFlowEdge(
@@ -238,7 +250,7 @@ function sourceHandle(kind: string): string {
     return "source-top";
   }
   if (kind === "hands_off_to" || kind === "delegates_to") {
-    return "source-bottom";
+    return "source-right";
   }
   return "source-right";
 }
@@ -251,7 +263,7 @@ function targetHandle(kind: string): string {
     return "target-bottom";
   }
   if (kind === "hands_off_to" || kind === "delegates_to") {
-    return "target-top";
+    return "target-left";
   }
   return "target-left";
 }
