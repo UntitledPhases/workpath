@@ -4,7 +4,9 @@ import {
   type BoundaryNode,
   type EvidenceNode,
   type GateNode,
+  type ModelTier,
   type PrivacyClassification,
+  type ReasoningLevel,
   type SopGraph,
   type SopNode,
   type SopSelection,
@@ -26,6 +28,8 @@ interface SopInspectorProps {
 const PRIVACY_OPTIONS: Array<PrivacyClassification | ""> = ["", "public", "internal", "sensitive", "secret", "forbidden"];
 const MODULE_OPTIONS: StepModule[] = ["intent", "research", "plan", "execute", "verify", "return"];
 const GATE_OPTIONS: GateNode["gate_kind"][] = ["reverse_pass", "approval", "tests", "privacy"];
+const MODEL_TIER_OPTIONS: ModelTier[] = ["cheap", "medium", "expensive", "local", "custom"];
+const REASONING_OPTIONS: ReasoningLevel[] = ["none", "low", "medium", "high"];
 
 export function SopInspector({
   onAddActivity,
@@ -197,6 +201,7 @@ function ActivityEditor({
     <div className="editor-form" aria-label="Activity editor">
       <TextField label="title" maxLength={24} value={node.title} onChange={(title) => onUpdate((current) => ({ ...current, title }))} />
       <TextArea label="purpose" value={node.notes ?? ""} onChange={(notes) => onUpdate((current) => ({ ...current, notes: optional(notes) }))} />
+      {node.action ? <OperationActionFields node={node} onUpdate={onUpdate} /> : null}
       <div className="inline-actions">
         <button type="button" onClick={() => onMoveActivity(parentStepId, node.id, -1)}>
           Move left
@@ -213,6 +218,196 @@ function ActivityEditor({
       </AdvancedFields>
     </div>
   );
+}
+
+function OperationActionFields({
+  node,
+  onUpdate
+}: {
+  node: SubprocessNode;
+  onUpdate: (updater: (node: SubprocessNode) => SubprocessNode) => void;
+}) {
+  if (node.action?.kind === "agent_fanout") {
+    return (
+      <section className="action-fields" aria-label="Agent fanout settings">
+        <div className="field-readout">
+          <span>action</span>
+          <strong>agent_fanout</strong>
+        </div>
+        <NumberField
+          label="worker_count"
+          min={1}
+          max={200}
+          value={node.action.worker_count}
+          onChange={(worker_count) =>
+            onUpdate((current) =>
+              current.action?.kind === "agent_fanout"
+                ? {
+                    ...current,
+                    action: {
+                      ...current.action,
+                      worker_count,
+                      execution: {
+                        ...current.action.execution,
+                        max_concurrency: Math.min(current.action.execution.max_concurrency ?? worker_count, worker_count)
+                      }
+                    }
+                  }
+                : current
+            )
+          }
+        />
+        <label className="field">
+          <span>model_tier</span>
+          <select
+            value={node.action.worker_profile.model_tier}
+            onChange={(event) =>
+              onUpdate((current) =>
+                current.action?.kind === "agent_fanout"
+                  ? {
+                      ...current,
+                      action: {
+                        ...current.action,
+                        worker_profile: {
+                          ...current.action.worker_profile,
+                          model_tier: event.target.value as ModelTier
+                        }
+                      }
+                    }
+                  : current
+              )
+            }
+          >
+            {MODEL_TIER_OPTIONS.map((tier) => (
+              <option key={tier} value={tier}>
+                {tier}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          <span>reasoning</span>
+          <select
+            value={node.action.worker_profile.reasoning ?? "none"}
+            onChange={(event) =>
+              onUpdate((current) =>
+                current.action?.kind === "agent_fanout"
+                  ? {
+                      ...current,
+                      action: {
+                        ...current.action,
+                        worker_profile: {
+                          ...current.action.worker_profile,
+                          reasoning: event.target.value as ReasoningLevel
+                        }
+                      }
+                    }
+                  : current
+              )
+            }
+          >
+            {REASONING_OPTIONS.map((reasoning) => (
+              <option key={reasoning} value={reasoning}>
+                {reasoning}
+              </option>
+            ))}
+          </select>
+        </label>
+        <NumberField
+          label="max_concurrency"
+          min={1}
+          max={node.action.worker_count}
+          value={node.action.execution.max_concurrency ?? node.action.worker_count}
+          onChange={(max_concurrency) =>
+            onUpdate((current) =>
+              current.action?.kind === "agent_fanout"
+                ? {
+                    ...current,
+                    action: {
+                      ...current.action,
+                      execution: {
+                        ...current.action.execution,
+                        max_concurrency
+                      }
+                    }
+                  }
+                : current
+            )
+          }
+        />
+        <TextField
+          label="required_fields"
+          value={node.action.output_contract.required_fields.join(", ")}
+          onChange={(value) =>
+            onUpdate((current) =>
+              current.action?.kind === "agent_fanout"
+                ? {
+                    ...current,
+                    action: {
+                      ...current.action,
+                      output_contract: {
+                        ...current.action.output_contract,
+                        required_fields: csv(value)
+                      }
+                    }
+                  }
+                : current
+            )
+          }
+        />
+      </section>
+    );
+  }
+
+  if (node.action?.kind === "synthesis") {
+    return (
+      <section className="action-fields" aria-label="Synthesis settings">
+        <div className="field-readout">
+          <span>action</span>
+          <strong>synthesis</strong>
+        </div>
+        <TextField
+          label="inputs"
+          value={node.action.inputs.join(", ")}
+          onChange={(value) =>
+            onUpdate((current) =>
+              current.action?.kind === "synthesis"
+                ? {
+                    ...current,
+                    action: {
+                      ...current.action,
+                      inputs: csv(value)
+                    }
+                  }
+                : current
+            )
+          }
+        />
+        <TextField
+          label="required_fields"
+          value={node.action.output_contract.required_fields.join(", ")}
+          onChange={(value) =>
+            onUpdate((current) =>
+              current.action?.kind === "synthesis"
+                ? {
+                    ...current,
+                    action: {
+                      ...current.action,
+                      output_contract: {
+                        ...current.action.output_contract,
+                        required_fields: csv(value)
+                      }
+                    }
+                  }
+                : current
+            )
+          }
+        />
+      </section>
+    );
+  }
+
+  return null;
 }
 
 function StepFields({ node, onUpdate }: { node: StepNode; onUpdate: (updater: (node: SopNode) => SopNode) => void }) {
@@ -437,6 +632,38 @@ function TextField({
     <label className="field">
       <span>{label}</span>
       <input maxLength={maxLength} value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
+function NumberField({
+  label,
+  max,
+  min,
+  onChange,
+  value
+}: {
+  label: string;
+  max?: number;
+  min?: number;
+  onChange: (value: number) => void;
+  value: number;
+}) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <input
+        max={max}
+        min={min}
+        type="number"
+        value={value}
+        onChange={(event) => {
+          const next = Number.parseInt(event.target.value, 10);
+          if (Number.isFinite(next)) {
+            onChange(next);
+          }
+        }}
+      />
     </label>
   );
 }

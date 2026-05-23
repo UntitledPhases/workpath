@@ -41,6 +41,80 @@ export const subprocessEdgeKindSchema = z.enum([
   "gates"
 ]);
 
+export const modelTierSchema = z.enum([
+  "cheap",
+  "medium",
+  "expensive",
+  "local",
+  "custom"
+]);
+
+export const reasoningLevelSchema = z.enum([
+  "none",
+  "low",
+  "medium",
+  "high"
+]);
+
+const workerProfileSchema = z.object({
+  model_tier: modelTierSchema,
+  reasoning: reasoningLevelSchema.optional(),
+  role: z.string().min(1)
+});
+
+const operationExecutionSchema = z.object({
+  mode: z.enum(["parallel", "sequential"]),
+  max_concurrency: z.number().int().positive().optional(),
+  fallback: z.string().min(1).optional()
+});
+
+const operationInputContractSchema = z.object({
+  requires: z.array(z.string().min(1)).default([])
+});
+
+const operationOutputContractSchema = z.object({
+  artifact_kind: z.string().min(1),
+  required_fields: z.array(z.string().min(1)).min(1)
+});
+
+const operationEscalationSchema = z.object({
+  when: z.array(z.string().min(1)).min(1),
+  target: z.string().min(1).optional()
+});
+
+export const operationActionSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("activity"),
+    instructions: z.string().min(1).optional()
+  }),
+  z.object({
+    kind: z.literal("agent_fanout"),
+    worker_count: z.number().int().positive().max(200),
+    worker_profile: workerProfileSchema,
+    execution: operationExecutionSchema,
+    input_contract: operationInputContractSchema,
+    output_contract: operationOutputContractSchema,
+    merge_strategy: z.object({
+      kind: z.literal("cluster_rank_synthesize"),
+      target_operation_id: z.string().min(1)
+    }),
+    budget_per_run: z
+      .object({
+        token_budget: z.number().int().positive().optional(),
+        max_minutes: z.number().int().positive().optional()
+      })
+      .optional(),
+    escalation: operationEscalationSchema.optional()
+  }),
+  z.object({
+    kind: z.literal("synthesis"),
+    strategy: z.literal("cluster_rank_synthesize"),
+    inputs: z.array(z.string().min(1)).min(1),
+    output_contract: operationOutputContractSchema,
+    escalation: operationEscalationSchema.optional()
+  })
+]);
+
 const nodeBaseSchema = z.object({
   id: z.string().min(1).regex(/^[A-Za-z][A-Za-z0-9_-]*$/),
   title: z.string().min(1).max(SOP_NODE_TITLE_MAX_LENGTH),
@@ -101,7 +175,8 @@ export const canvasNodeSchema = z.object({
 });
 
 export const subprocessNodeSchema = nodeBaseSchema.extend({
-  kind: z.literal("activity")
+  kind: z.literal("activity"),
+  action: operationActionSchema.optional()
 });
 
 export const subprocessEdgeSchema = z.object({
@@ -263,6 +338,53 @@ export const sopGraphSchema = z
         globalSubprocessNodeIds.add(node.id);
       }
 
+      for (const [nodeIndex, node] of subprocess.nodes.entries()) {
+        if (node.action?.kind === "agent_fanout") {
+          if (!subprocessNodes.has(node.action.merge_strategy.target_operation_id)) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "action", "merge_strategy", "target_operation_id"],
+              message: "agent_fanout merge_strategy.target_operation_id must reference an operation in the subprocess"
+            });
+          }
+          if (
+            node.action.execution.max_concurrency &&
+            node.action.execution.max_concurrency > node.action.worker_count
+          ) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "action", "execution", "max_concurrency"],
+              message: "agent_fanout max_concurrency cannot exceed worker_count"
+            });
+          }
+          if (node.action.escalation?.target && !subprocessNodes.has(node.action.escalation.target)) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "action", "escalation", "target"],
+              message: "agent_fanout escalation target must reference an operation in the subprocess"
+            });
+          }
+        }
+        if (node.action?.kind === "synthesis") {
+          for (const [inputIndex, inputId] of node.action.inputs.entries()) {
+            if (!subprocessNodes.has(inputId)) {
+              ctx.addIssue({
+                code: "custom",
+                path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "action", "inputs", inputIndex],
+                message: "synthesis inputs must reference operations in the subprocess"
+              });
+            }
+          }
+          if (node.action.escalation?.target && !subprocessNodes.has(node.action.escalation.target)) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["subprocesses", subprocessIndex, "nodes", nodeIndex, "action", "escalation", "target"],
+              message: "synthesis escalation target must reference an operation in the subprocess"
+            });
+          }
+        }
+      }
+
       const seenSubprocessEdgeIds = new Set<string>();
       const endpointIds = new Set([...subprocessNodes, ...subprocess.attached_node_ids]);
       for (const [edgeIndex, edge] of subprocess.edges.entries()) {
@@ -310,6 +432,9 @@ export type StepModule = z.infer<typeof stepModuleSchema>;
 export type GateKind = z.infer<typeof gateKindSchema>;
 export type EdgeKind = z.infer<typeof edgeKindSchema>;
 export type SubprocessEdgeKind = z.infer<typeof subprocessEdgeKindSchema>;
+export type ModelTier = z.infer<typeof modelTierSchema>;
+export type ReasoningLevel = z.infer<typeof reasoningLevelSchema>;
+export type OperationAction = z.infer<typeof operationActionSchema>;
 export type SopNode = z.infer<typeof sopNodeSchema>;
 export type StepNode = z.infer<typeof stepNodeSchema>;
 export type GateNode = z.infer<typeof gateNodeSchema>;

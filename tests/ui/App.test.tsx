@@ -190,4 +190,21 @@ describe("App", () => {
     expect(screen.getByTestId("sop-inspector").textContent).toContain("New activity");
     expect(screen.getByTestId("export-panel").textContent).toContain("Ready");
   });
+
+  it("edits research fanout settings and recompiles the packet preview", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Select activity: Run breadth agents" }));
+
+    const workerCount = await screen.findByLabelText("worker_count");
+    expect((workerCount as HTMLInputElement).value).toBe("40");
+
+    fireEvent.change(workerCount, { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText("preview"), {
+      target: { value: ".workpath/generated/operator-instructions.md" }
+    });
+
+    expect(screen.getByTestId("export-panel").textContent).toContain("edited");
+    expect(screen.getByTestId("export-panel").textContent).toContain("Run 12 independent cheap worker pass(es).");
+  });
 });

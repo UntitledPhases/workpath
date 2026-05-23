@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "kind": "workpath_context_pack",
+  "sop_id": "sop_project_loop",
+  "entry_node_id": "intent",
+  "default_privacy": "internal",
+  "static_context": [
+    {
+      "id": "workflow_program",
+      "path": ".workpath/workflow_program.json",
+      "purpose": "Canonical machine-readable workflow contract."
+    },
+    {
+      "id": "source_sop",
+      "path": "sop.json",
+      "purpose": "Reimportable authoring source."
+    },
+    {
+      "id": "audit_bundle",
+      "paths": [
+        "tasks.jsonl",
+        "events.jsonl",
+        "artifacts.jsonl",
+        "handoffs.jsonl",
+        "review_gates.jsonl",
+        "returns.jsonl",
+        "ownership_claims.jsonl",
+        "privacy_boundaries.jsonl",
+        "memory_candidates.jsonl"
+      ],
+      "purpose": "Evidence, handoff, task, and runtime JSONL records."
+    }
+  ],
+  "operation_inputs": [
+    {
+      "operation_id": "research_breadth_agents",
+      "process_id": "research_nested_process",
+      "requires": [
+        "research_questions",
+        "available_context"
+      ]
+    }
+  ]
+}

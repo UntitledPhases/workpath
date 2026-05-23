@@ -49,4 +49,47 @@ describe("Workflow program compiler", () => {
       to: "boundary_codex_worker"
     });
   });
+
+  it("compiles research fanout into executable operation semantics", async () => {
+    const sop = await readSeedSop();
+    const research = compileToWorkflowProgram(sop).nested_processes.find(
+      (process) => process.parent_step_id === "research"
+    );
+    const fanout = research?.operations.find((operation) => operation.id === "research_breadth_agents");
+    const synthesis = research?.operations.find((operation) => operation.id === "research_convergence");
+
+    expect(fanout).toMatchObject({
+      operation_kind: "agent_fanout",
+      action: {
+        kind: "agent_fanout",
+        worker_count: 40,
+        worker_profile: {
+          model_tier: "cheap",
+          reasoning: "low",
+          role: "breadth_researcher"
+        },
+        execution: {
+          mode: "parallel",
+          max_concurrency: 10
+        },
+        merge_strategy: {
+          kind: "cluster_rank_synthesize",
+          target_operation_id: "research_convergence"
+        },
+        output_contract: {
+          required_fields: ["claim", "source", "confidence", "why_it_matters"]
+        }
+      }
+    });
+    expect(synthesis).toMatchObject({
+      operation_kind: "synthesis",
+      action: {
+        kind: "synthesis",
+        inputs: ["research_breadth_agents"],
+        output_contract: {
+          required_fields: ["high_signal_findings", "disagreements", "recommended_focus", "open_questions"]
+        }
+      }
+    });
+  });
 });

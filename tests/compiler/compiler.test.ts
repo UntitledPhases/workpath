@@ -97,22 +97,32 @@ describe("SOP to Ideate compiler", () => {
         compilerVersion: OPTIONS.compilerVersion
       });
       const manifest = JSON.parse(await readFile(join(outDir, "workpath.json"), "utf8")) as {
+        entry_file: string;
         export_mode: string;
+        read_order: string[];
         sop_id: string;
       };
       const program = JSON.parse(await readFile(join(outDir, ".workpath", "workflow_program.json"), "utf8")) as {
         kind: string;
         source_sop_id: string;
       };
+      const instructions = await readFile(join(outDir, ".workpath", "generated", "operator-instructions.md"), "utf8");
+      const toolPolicy = await readFile(join(outDir, ".workpath", "generated", "tool-policy.json"), "utf8");
+      const contextPack = await readFile(join(outDir, ".workpath", "generated", "context-pack.json"), "utf8");
 
       expect(manifest).toMatchObject({
+        entry_file: ".workpath/workflow_program.json",
         export_mode: "specification",
         sop_id: "sop_project_loop"
       });
+      expect(manifest.read_order).toContain(".workpath/generated/operator-instructions.md");
       expect(program).toMatchObject({
         kind: "workflow_program",
         source_sop_id: "sop_project_loop"
       });
+      expect(instructions).toContain("Run 40 independent cheap worker pass(es).");
+      expect(toolPolicy).toContain('"workpath_tool_policy"');
+      expect(contextPack).toContain('"workpath_context_pack"');
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }

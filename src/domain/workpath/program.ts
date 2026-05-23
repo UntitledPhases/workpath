@@ -4,6 +4,7 @@ import {
   type BoundaryNode,
   type EvidenceNode,
   type GateNode,
+  type OperationAction,
   type PrivacyClassification,
   type SopGraph,
   type SopNode,
@@ -11,6 +12,7 @@ import {
   type StepNode,
   type SubprocessEdge,
   type SubprocessNode,
+  operationActionSchema,
   sopGraphSchema
 } from "../sop/index.js";
 
@@ -67,7 +69,8 @@ const handoffProgramNodeSchema = programNodeBaseSchema.extend({
 
 const operationProgramNodeSchema = programNodeBaseSchema.extend({
   kind: z.literal("operation"),
-  operation_kind: z.literal("activity")
+  operation_kind: z.enum(["activity", "agent_fanout", "synthesis"]),
+  action: operationActionSchema
 });
 
 export const workflowProgramNodeSchema = z.discriminatedUnion("kind", [
@@ -146,7 +149,7 @@ export function compileToWorkflowProgram(input: unknown): WorkflowProgram {
     nested_processes: sop.subprocesses.map((subprocess) => compileNestedProcess(sop, subprocess)),
     generated_outputs: [
       ".workpath/workflow_program.json",
-      ".workpath/generated/codex-handoff.md",
+      ".workpath/generated/operator-instructions.md",
       ".workpath/generated/context-pack.json",
       ".workpath/generated/tool-policy.json"
     ]
@@ -230,10 +233,12 @@ function compileNestedProcess(sop: SopGraph, subprocess: SopSubprocess): NestedP
 }
 
 function compileOperation(sop: SopGraph, node: SubprocessNode): OperationProgramNode {
+  const action = node.action ?? defaultActivityAction(node);
   return {
     ...baseProgramNode(sop, node),
     kind: "operation",
-    operation_kind: "activity"
+    action,
+    operation_kind: action.kind
   };
 }
 
@@ -276,4 +281,11 @@ function baseProgramNode(
 
 function nestedProcessId(stepId: string): string {
   return `${stepId}_nested_process`;
+}
+
+function defaultActivityAction(node: SubprocessNode): OperationAction {
+  return {
+    kind: "activity",
+    instructions: node.notes ?? node.title
+  };
 }

@@ -3,11 +3,15 @@
 Local-first structured SOP composer for AI work nodes.
 
 Workpath is the visual SOP programming layer for AI work. It compiles one
-authoring graph into two outputs: a programmable harness artifact for agents and
-an Ideate-compatible evidence/audit bundle.
+authoring graph into an agent packet: a programmable harness artifact,
+pasteable operator instructions, context/tool policy files, and an
+Ideate-compatible evidence/audit bundle.
 
 ```text
 author sop.json -> compile .workpath/workflow_program.json
+                -> compile .workpath/generated/operator-instructions.md
+                -> compile .workpath/generated/context-pack.json
+                -> compile .workpath/generated/tool-policy.json
                 -> compile Ideate JSONL bundle
                 -> validate with agentic-sdlc
 ```
@@ -23,7 +27,7 @@ overview shows only lifecycle process steps, while opening a step zooms into a
 large process frame containing that step's child workflow and attached gates,
 evidence, or handoff contracts. The side rail edits selected objects and
 compiles the current draft into a downloadable bundle that includes
-`.workpath/workflow_program.json`.
+`.workpath/workflow_program.json` plus generated packet files.
 
 ```powershell
 npm install
@@ -40,7 +44,9 @@ The compiler reads [examples/seed-project-sop.json](examples/seed-project-sop.js
 and emits [examples/exported-project-sop](examples/exported-project-sop). The
 Ideate JSONL output proves the audit/evidence records validate, while
 `.workpath/workflow_program.json` preserves the programmable operating process
-for downstream agent adapters.
+for downstream agent adapters. The generated operator instructions are the
+plain-language packet a user can hand to Codex, Claude, a CLI LLM, or a future
+orchestrator.
 
 The app seeds from [examples/seed-project-sop.json](examples/seed-project-sop.json)
 and keeps edits in browser draft state. The compiled bundle is an output
@@ -51,6 +57,8 @@ artifact, not the authoring source.
 - `nodes` stores Ideate-compatible process steps, evidence, review gates, and handoffs.
 - `edges` stores the export-facing relationships needed by the compiler.
 - `subprocesses` stores nested process definitions keyed by `parent_step_id`.
+- `action` on nested process activities stores executable operation semantics.
+  Slice 4b supports `activity`, `agent_fanout`, and `synthesis`.
 - Overview rendering shows only top-level step sequence.
 - Drilldown rendering shows one selected step as a large nested process frame
   containing its child workflow plus declared attachments.
@@ -68,12 +76,15 @@ artifact, not the authoring source.
 - Slice 4a adds the first harness-oriented compile target:
   `.workpath/workflow_program.json`. It is the source artifact future Codex,
   Claude, GitHub, n8n, or internal-runner adapters should read.
+- Slice 4b turns the Research subprocess into the first real programmable
+  behavior path: `research_breadth_agents` can fan out to configurable cheap
+  workers, then hand results to a synthesis operation.
 
 ## Boundary
 
 V1 does not run agents, publish to GitHub, deploy to Vercel, create org-level
 workflows, or execute prompts. It authors a single-node SOP graph and compiles
-that graph into a workflow program plus validated evidence records.
+that graph into an agent packet plus validated evidence records.
 
 ## Slice Plan
 
@@ -86,8 +97,11 @@ that graph into a workflow program plus validated evidence records.
   export.
 - Slice 4a complete: workflow program export and simplified profile-first
   inspector controls.
+- Slice 4b complete: Research fanout packet export with structured operation
+  actions, generated operator instructions, generated context pack, and
+  generated tool policy.
 - Slice 4: explicit decision/agent-group/context-pack nodes, templates,
-  stronger validation UX, generated handoff Markdown, and
+  stronger validation UX, generated handoff Markdown, JSONL schemas, and
   publish-readiness pass.
 
 ## Local-Only Discipline

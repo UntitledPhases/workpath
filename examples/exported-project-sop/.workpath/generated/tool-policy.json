@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "kind": "workpath_tool_policy",
+  "sop_id": "sop_project_loop",
+  "runtime_boundary": {
+    "mode": "external_runtime",
+    "stores_restricted_data": false,
+    "stores_secrets": false
+  },
+  "default_policy": {
+    "secrets": "do_not_read_or_persist",
+    "filesystem": "bounded_by_allowed_paths",
+    "network": "allowed_only_when_required_by_operation",
+    "human_approval": "required_for_external_side_effects"
+  },
+  "path_policy": {
+    "allowed_paths": [
+      "docs/**",
+      "src/**",
+      "tests/**"
+    ],
+    "denied_paths": [
+      ".env",
+      ".ssh/**"
+    ]
+  },
+  "operation_policies": [
+    {
+      "operation_id": "research_breadth_agents",
+      "process_id": "research_nested_process",
+      "allowed_tools": [
+        "web_search",
+        "local_context_read"
+      ],
+      "denied_capabilities": [
+        "credential_access",
+        "secret_exfiltration",
+        "unbounded_filesystem_write"
+      ],
+      "execution": {
+        "mode": "parallel",
+        "max_concurrency": 10,
+        "fallback": "run_sequentially_if_parallel_unavailable"
+      }
+    }
+  ]
+}

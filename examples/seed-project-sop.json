@@ -146,8 +146,63 @@
         { "id": "research_local_artifacts", "kind": "activity", "title": "Check local artifacts" },
         { "id": "research_questions", "kind": "activity", "title": "Frame questions" },
         { "id": "research_wide_net", "kind": "activity", "title": "Search wide net" },
-        { "id": "research_breadth_agents", "kind": "activity", "title": "Run breadth agents" },
-        { "id": "research_convergence", "kind": "activity", "title": "Synthesize convergence" },
+        {
+          "id": "research_breadth_agents",
+          "kind": "activity",
+          "title": "Run breadth agents",
+          "notes": "Run a wide set of cheap independent research passes before synthesis.",
+          "action": {
+            "kind": "agent_fanout",
+            "worker_count": 40,
+            "worker_profile": {
+              "model_tier": "cheap",
+              "reasoning": "low",
+              "role": "breadth_researcher"
+            },
+            "execution": {
+              "mode": "parallel",
+              "max_concurrency": 10,
+              "fallback": "run_sequentially_if_parallel_unavailable"
+            },
+            "input_contract": {
+              "requires": ["research_questions", "available_context"]
+            },
+            "output_contract": {
+              "artifact_kind": "research_finding",
+              "required_fields": ["claim", "source", "confidence", "why_it_matters"]
+            },
+            "merge_strategy": {
+              "kind": "cluster_rank_synthesize",
+              "target_operation_id": "research_convergence"
+            },
+            "budget_per_run": {
+              "max_minutes": 8
+            },
+            "escalation": {
+              "when": ["high_conflict_between_sources", "low_confidence_after_synthesis"],
+              "target": "research_convergence"
+            }
+          }
+        },
+        {
+          "id": "research_convergence",
+          "kind": "activity",
+          "title": "Synthesize convergence",
+          "notes": "Cluster repeated findings, rank confidence, and preserve useful dissent.",
+          "action": {
+            "kind": "synthesis",
+            "strategy": "cluster_rank_synthesize",
+            "inputs": ["research_breadth_agents"],
+            "output_contract": {
+              "artifact_kind": "research_synthesis",
+              "required_fields": ["high_signal_findings", "disagreements", "recommended_focus", "open_questions"]
+            },
+            "escalation": {
+              "when": ["no_clear_convergence", "critical_fact_unverified"],
+              "target": "research_narrative"
+            }
+          }
+        },
         { "id": "research_narrative", "kind": "activity", "title": "Final narrative" }
       ],
       "edges": [

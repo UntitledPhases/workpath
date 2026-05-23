@@ -225,28 +225,44 @@
           "title": "Capture goal",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Capture goal"
+          }
         },
         {
           "id": "intent_constraints",
           "title": "Capture constraints",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Capture constraints"
+          }
         },
         {
           "id": "intent_done_state",
           "title": "Define done-state",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Define done-state"
+          }
         },
         {
           "id": "intent_risk",
           "title": "Set risk",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Set risk"
+          }
         }
       ],
       "edges": [
@@ -283,42 +299,126 @@
           "title": "Check local artifacts",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Check local artifacts"
+          }
         },
         {
           "id": "research_questions",
           "title": "Frame questions",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Frame questions"
+          }
         },
         {
           "id": "research_wide_net",
           "title": "Search wide net",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Search wide net"
+          }
         },
         {
           "id": "research_breadth_agents",
           "title": "Run breadth agents",
           "privacy": "internal",
+          "notes": "Run a wide set of cheap independent research passes before synthesis.",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "agent_fanout",
+          "action": {
+            "kind": "agent_fanout",
+            "worker_count": 40,
+            "worker_profile": {
+              "model_tier": "cheap",
+              "reasoning": "low",
+              "role": "breadth_researcher"
+            },
+            "execution": {
+              "mode": "parallel",
+              "max_concurrency": 10,
+              "fallback": "run_sequentially_if_parallel_unavailable"
+            },
+            "input_contract": {
+              "requires": [
+                "research_questions",
+                "available_context"
+              ]
+            },
+            "output_contract": {
+              "artifact_kind": "research_finding",
+              "required_fields": [
+                "claim",
+                "source",
+                "confidence",
+                "why_it_matters"
+              ]
+            },
+            "merge_strategy": {
+              "kind": "cluster_rank_synthesize",
+              "target_operation_id": "research_convergence"
+            },
+            "budget_per_run": {
+              "max_minutes": 8
+            },
+            "escalation": {
+              "when": [
+                "high_conflict_between_sources",
+                "low_confidence_after_synthesis"
+              ],
+              "target": "research_convergence"
+            }
+          }
         },
         {
           "id": "research_convergence",
           "title": "Synthesize convergence",
           "privacy": "internal",
+          "notes": "Cluster repeated findings, rank confidence, and preserve useful dissent.",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "synthesis",
+          "action": {
+            "kind": "synthesis",
+            "strategy": "cluster_rank_synthesize",
+            "inputs": [
+              "research_breadth_agents"
+            ],
+            "output_contract": {
+              "artifact_kind": "research_synthesis",
+              "required_fields": [
+                "high_signal_findings",
+                "disagreements",
+                "recommended_focus",
+                "open_questions"
+              ]
+            },
+            "escalation": {
+              "when": [
+                "no_clear_convergence",
+                "critical_fact_unverified"
+              ],
+              "target": "research_narrative"
+            }
+          }
         },
         {
           "id": "research_narrative",
           "title": "Final narrative",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Final narrative"
+          }
         }
       ],
       "edges": [
@@ -367,28 +467,44 @@
           "title": "Decompose work",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Decompose work"
+          }
         },
         {
           "id": "plan_forward",
           "title": "Forward plan",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Forward plan"
+          }
         },
         {
           "id": "plan_reverse",
           "title": "Reverse pass",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Reverse pass"
+          }
         },
         {
           "id": "plan_revise",
           "title": "Revise plan",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Revise plan"
+          }
         }
       ],
       "edges": [
@@ -440,21 +556,33 @@
           "title": "Confirm scope",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Confirm scope"
+          }
         },
         {
           "id": "execute_delegate_worker",
           "title": "Delegate worker",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Delegate worker"
+          }
         },
         {
           "id": "execute_integrate",
           "title": "Integrate return",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Integrate return"
+          }
         }
       ],
       "edges": [
@@ -493,21 +621,33 @@
           "title": "Run checks",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Run checks"
+          }
         },
         {
           "id": "verify_inspect_outputs",
           "title": "Inspect outputs",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Inspect outputs"
+          }
         },
         {
           "id": "verify_validate_evidence",
           "title": "Validate evidence",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Validate evidence"
+          }
         }
       ],
       "edges": [
@@ -553,28 +693,44 @@
           "title": "Summarize result",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Summarize result"
+          }
         },
         {
           "id": "return_evidence",
           "title": "List evidence",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "List evidence"
+          }
         },
         {
           "id": "return_risks",
           "title": "Name risks",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Name risks"
+          }
         },
         {
           "id": "return_next_slice",
           "title": "Set next slice",
           "privacy": "internal",
           "kind": "operation",
-          "operation_kind": "activity"
+          "operation_kind": "activity",
+          "action": {
+            "kind": "activity",
+            "instructions": "Set next slice"
+          }
         }
       ],
       "edges": [
@@ -602,7 +758,7 @@
   ],
   "generated_outputs": [
     ".workpath/workflow_program.json",
-    ".workpath/generated/codex-handoff.md",
+    ".workpath/generated/operator-instructions.md",
     ".workpath/generated/context-pack.json",
     ".workpath/generated/tool-policy.json"
   ]

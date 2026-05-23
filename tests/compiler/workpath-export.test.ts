@@ -9,6 +9,9 @@ describe("Workpath browser export", () => {
     const files = buildWorkpathExportFiles(seed, { createdAt: "2026-05-20T20:00:00.000Z" });
 
     expect(Object.keys(files).sort()).toEqual([
+      ".workpath/generated/context-pack.json",
+      ".workpath/generated/operator-instructions.md",
+      ".workpath/generated/tool-policy.json",
       ".workpath/workflow_program.json",
       "artifacts.jsonl",
       "canvas.json",
@@ -26,7 +29,14 @@ describe("Workpath browser export", () => {
     expect(files["tasks.jsonl"]).toContain('"artifact_type":"task"');
     expect(files["sop.json"]).toContain('"title": "Project SOP"');
     expect(files["workpath.json"]).toContain('"export_mode": "specification"');
+    expect(files["workpath.json"]).toContain('"entry_file": ".workpath/workflow_program.json"');
     expect(files[".workpath/workflow_program.json"]).toContain('"kind": "workflow_program"');
+    expect(files[".workpath/workflow_program.json"]).toContain('"worker_count": 40');
+    expect(files[".workpath/generated/operator-instructions.md"]).toContain(
+      "Run 40 independent cheap worker pass(es)."
+    );
+    expect(files[".workpath/generated/context-pack.json"]).toContain('"kind": "workpath_context_pack"');
+    expect(files[".workpath/generated/tool-policy.json"]).toContain('"kind": "workpath_tool_policy"');
   });
 
   it("creates a valid uncompressed zip payload", async () => {

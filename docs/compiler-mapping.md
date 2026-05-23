@@ -19,3 +19,10 @@ review gates in `validate` mode. Slice 1 therefore compiles gate/evidence pairs
 as validated specification artifacts so the exported bundle can prove the
 compiler loop. Template-specific validation is a future Ideate feature, not a
 Workpath Slice 1 concern.
+
+Workpath also compiles native SOP graphs into an agent packet. The packet
+includes `.workpath/workflow_program.json` as the canonical control contract and
+generated `.workpath/generated/*` files for operator instructions, context
+loading, and tool policy. Nested process activities with `action.kind:
+"agent_fanout"` or `action.kind: "synthesis"` preserve behavior in the workflow
+program and in the generated instructions.

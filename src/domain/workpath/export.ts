@@ -1,5 +1,10 @@
 import { compileToIdeateBundle, IDEATE_FILES } from "../ideate/compiler.js";
 import { type SopGraph } from "../sop/index.js";
+import {
+  buildGeneratedPacketFiles,
+  buildWorkpathManifest,
+  WORKPATH_PROGRAM_FILE
+} from "./packet.js";
 import { compileToWorkflowProgram } from "./program.js";
 
 export interface WorkpathExportOptions {
@@ -21,22 +26,14 @@ export function buildWorkpathExportFiles(
   for (const fileName of IDEATE_FILES) {
     files[fileName] = recordsToJsonl(bundle[fileName]);
   }
+  const program = compileToWorkflowProgram(source);
   return {
     ...files,
-    ".workpath/workflow_program.json": `${JSON.stringify(compileToWorkflowProgram(source), null, 2)}\n`,
+    [WORKPATH_PROGRAM_FILE]: `${JSON.stringify(program, null, 2)}\n`,
+    ...buildGeneratedPacketFiles(program),
     "sop.json": `${JSON.stringify(source, null, 2)}\n`,
     "canvas.json": `${JSON.stringify(source.canvas, null, 2)}\n`,
-    "workpath.json": `${JSON.stringify(
-      {
-        schema_version: "1.0",
-        kind: "workpath_export_manifest",
-        sop_id: source.id,
-        export_mode: "specification",
-        compiler: compilerVersion
-      },
-      null,
-      2
-    )}\n`
+    "workpath.json": `${JSON.stringify(buildWorkpathManifest(source, compilerVersion), null, 2)}\n`
   };
 }
 

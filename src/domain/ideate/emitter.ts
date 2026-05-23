@@ -3,6 +3,12 @@ import { join } from "node:path";
 
 import { type IdeateBundle, IDEATE_FILES } from "./compiler.js";
 import { type SopGraph } from "../sop/schema.js";
+import {
+  buildGeneratedPacketFiles,
+  buildWorkpathManifest,
+  WORKPATH_GENERATED_PACKET_FILES,
+  WORKPATH_PROGRAM_FILE
+} from "../workpath/packet.js";
 import { compileToWorkflowProgram } from "../workpath/program.js";
 
 export interface EmitOptions {
@@ -35,24 +41,19 @@ export async function writeIdeateBundle(
     await writeFile(join(outDir, "sop.json"), JSON.stringify(source, null, 2) + "\n", "utf8");
     await writeFile(join(outDir, "canvas.json"), JSON.stringify(source.canvas, null, 2) + "\n", "utf8");
     await mkdir(join(outDir, ".workpath"), { recursive: true });
+    await mkdir(join(outDir, ".workpath", "generated"), { recursive: true });
+    const program = compileToWorkflowProgram(source);
     await writeFile(
-      join(outDir, ".workpath", "workflow_program.json"),
-      JSON.stringify(compileToWorkflowProgram(source), null, 2) + "\n",
+      join(outDir, WORKPATH_PROGRAM_FILE),
+      JSON.stringify(program, null, 2) + "\n",
       "utf8"
     );
+    for (const [fileName, contents] of Object.entries(buildGeneratedPacketFiles(program))) {
+      await writeFile(join(outDir, fileName), contents, "utf8");
+    }
     await writeFile(
       join(outDir, "workpath.json"),
-      JSON.stringify(
-        {
-          schema_version: "1.0",
-          kind: "workpath_export_manifest",
-          sop_id: source.id,
-          export_mode: options.exportMode ?? "specification",
-          compiler: options.compilerVersion ?? "workpath-compiler@0.1.0"
-        },
-        null,
-        2
-      ) + "\n",
+      JSON.stringify(buildWorkpathManifest(source, options.compilerVersion ?? "workpath-compiler@0.1.0"), null, 2) + "\n",
       "utf8"
     );
   }
@@ -60,7 +61,14 @@ export async function writeIdeateBundle(
 
 async function removeOwnedOutputFiles(outDir: string, includeSource: boolean): Promise<void> {
   const ownedFiles = includeSource
-    ? [...IDEATE_FILES, "sop.json", "canvas.json", "workpath.json", join(".workpath", "workflow_program.json")]
+    ? [
+        ...IDEATE_FILES,
+        "sop.json",
+        "canvas.json",
+        "workpath.json",
+        WORKPATH_PROGRAM_FILE,
+        ...WORKPATH_GENERATED_PACKET_FILES
+      ]
     : IDEATE_FILES;
   await Promise.all(ownedFiles.map((fileName) => rm(join(outDir, fileName), { force: true })));
 }

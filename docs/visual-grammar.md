@@ -1,6 +1,6 @@
 # Visual Grammar
 
-Slice 2 will render the native SOP model with four shapes:
+Workpath renders the native SOP model with four shapes:
 
 - Step: rectangle
 - Gate: diamond
@@ -26,3 +26,9 @@ V1 edge kinds:
 The canvas should show compact titles and shape language. Full metadata belongs
 in the side panel.
 
+Nested process activities can now carry action contracts. The first structured
+actions are:
+
+- `activity`: ordinary operation with instructions.
+- `agent_fanout`: configurable worker fanout, currently used by Research.
+- `synthesis`: merge operation for fanout outputs.

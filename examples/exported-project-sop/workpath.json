@@ -3,5 +3,25 @@
   "kind": "workpath_export_manifest",
   "sop_id": "sop_project_loop",
   "export_mode": "specification",
-  "compiler": "workpath-compiler@0.1.0"
+  "compiler": "workpath-compiler@0.1.0",
+  "entry_file": ".workpath/workflow_program.json",
+  "entry_node_id": "intent",
+  "read_order": [
+    "workpath.json",
+    ".workpath/workflow_program.json",
+    ".workpath/generated/operator-instructions.md",
+    ".workpath/generated/context-pack.json",
+    ".workpath/generated/tool-policy.json",
+    "tasks.jsonl",
+    "handoffs.jsonl",
+    "review_gates.jsonl",
+    "artifacts.jsonl",
+    "privacy_boundaries.jsonl",
+    "events.jsonl",
+    "returns.jsonl",
+    "ownership_claims.jsonl",
+    "memory_candidates.jsonl",
+    "sop.json",
+    "canvas.json"
+  ]
 }
