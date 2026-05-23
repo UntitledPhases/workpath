@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { type IdeateBundle, IDEATE_FILES } from "./compiler.js";
 import { type SopGraph } from "../sop/schema.js";
+import { compileToWorkflowProgram } from "../workpath/program.js";
 
 export interface EmitOptions {
   includeSource?: boolean;
@@ -33,6 +34,12 @@ export async function writeIdeateBundle(
   if (options.includeSource && source) {
     await writeFile(join(outDir, "sop.json"), JSON.stringify(source, null, 2) + "\n", "utf8");
     await writeFile(join(outDir, "canvas.json"), JSON.stringify(source.canvas, null, 2) + "\n", "utf8");
+    await mkdir(join(outDir, ".workpath"), { recursive: true });
+    await writeFile(
+      join(outDir, ".workpath", "workflow_program.json"),
+      JSON.stringify(compileToWorkflowProgram(source), null, 2) + "\n",
+      "utf8"
+    );
     await writeFile(
       join(outDir, "workpath.json"),
       JSON.stringify(
@@ -52,7 +59,9 @@ export async function writeIdeateBundle(
 }
 
 async function removeOwnedOutputFiles(outDir: string, includeSource: boolean): Promise<void> {
-  const ownedFiles = includeSource ? [...IDEATE_FILES, "sop.json", "canvas.json", "workpath.json"] : IDEATE_FILES;
+  const ownedFiles = includeSource
+    ? [...IDEATE_FILES, "sop.json", "canvas.json", "workpath.json", join(".workpath", "workflow_program.json")]
+    : IDEATE_FILES;
   await Promise.all(ownedFiles.map((fileName) => rm(join(outDir, fileName), { force: true })));
 }
 

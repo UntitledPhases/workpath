@@ -458,9 +458,7 @@ h1 {
 }
 
 .inspector-header {
-  border-bottom: 1px solid #dbe3ef;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .inspector-header span {
@@ -475,6 +473,41 @@ h1 {
 .inspector-header h2 {
   font-size: 18px;
   line-height: 1.25;
+}
+
+.inspector-profile-copy {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.35;
+  margin: 0 0 14px;
+}
+
+.metadata-panel,
+.advanced-fields {
+  background: #eef2f7;
+  border: 1px solid #dbe3ef;
+  border-radius: 6px;
+}
+
+.metadata-panel summary,
+.advanced-fields summary {
+  color: #475569;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+  list-style-position: inside;
+  padding: 8px 10px;
+}
+
+.metadata-panel dl,
+.advanced-fields-body {
+  border-top: 1px solid #dbe3ef;
+  padding: 10px;
+}
+
+.advanced-fields-body {
+  display: grid;
+  gap: 11px;
 }
 
 dl {

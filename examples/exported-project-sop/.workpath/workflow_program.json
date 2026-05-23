@@ -1,0 +1,609 @@
+{
+  "schema_version": "1.0",
+  "kind": "workflow_program",
+  "id": "sop_project_loop_program",
+  "title": "Project SOP",
+  "description": "Default loop for one AI work node.",
+  "source_sop_id": "sop_project_loop",
+  "entry_node_id": "intent",
+  "result_node_id": "return",
+  "default_privacy": "internal",
+  "runtime_boundary": {
+    "mode": "external_runtime",
+    "stores_restricted_data": false,
+    "stores_secrets": false
+  },
+  "nodes": [
+    {
+      "id": "intent",
+      "title": "Extract intent",
+      "privacy": "internal",
+      "notes": "Clarify goal, constraints, done-state, and risk.",
+      "kind": "process_step",
+      "module": "intent",
+      "nested_process_id": "intent_nested_process",
+      "review_gate_ids": [],
+      "handoff_ids": []
+    },
+    {
+      "id": "research",
+      "title": "Research context",
+      "privacy": "internal",
+      "kind": "process_step",
+      "module": "research",
+      "nested_process_id": "research_nested_process",
+      "review_gate_ids": [],
+      "handoff_ids": []
+    },
+    {
+      "id": "plan",
+      "title": "Plan implementation",
+      "privacy": "internal",
+      "kind": "process_step",
+      "module": "plan",
+      "nested_process_id": "plan_nested_process",
+      "review_gate_ids": [],
+      "handoff_ids": []
+    },
+    {
+      "id": "execute",
+      "title": "Execute work",
+      "privacy": "internal",
+      "kind": "process_step",
+      "module": "execute",
+      "nested_process_id": "execute_nested_process",
+      "review_gate_ids": [
+        "gate_reverse_pass"
+      ],
+      "handoff_ids": [
+        "boundary_codex_worker"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Verify evidence",
+      "privacy": "internal",
+      "kind": "process_step",
+      "module": "verify",
+      "nested_process_id": "verify_nested_process",
+      "review_gate_ids": [
+        "gate_tests"
+      ],
+      "handoff_ids": []
+    },
+    {
+      "id": "return",
+      "title": "Return result",
+      "privacy": "internal",
+      "kind": "process_step",
+      "module": "return",
+      "nested_process_id": "return_nested_process",
+      "review_gate_ids": [],
+      "handoff_ids": []
+    },
+    {
+      "id": "gate_reverse_pass",
+      "title": "Reverse pass complete",
+      "privacy": "internal",
+      "kind": "review_gate",
+      "gate_type": "reverse_pass",
+      "task_id": "execute",
+      "required_evidence": [
+        "artifact_reverse_pass"
+      ]
+    },
+    {
+      "id": "gate_tests",
+      "title": "Checks pass",
+      "privacy": "internal",
+      "kind": "review_gate",
+      "gate_type": "tests",
+      "task_id": "verify",
+      "required_evidence": [
+        "artifact_tests_passed"
+      ]
+    },
+    {
+      "id": "artifact_reverse_pass",
+      "title": "Reverse-pass notes",
+      "privacy": "internal",
+      "kind": "evidence_requirement",
+      "artifact_kind": "review_note",
+      "required": true
+    },
+    {
+      "id": "artifact_tests_passed",
+      "title": "Tests passed",
+      "privacy": "internal",
+      "kind": "evidence_requirement",
+      "artifact_kind": "test_result",
+      "required": true,
+      "command": "npm test"
+    },
+    {
+      "id": "boundary_codex_worker",
+      "title": "Worker handoff",
+      "privacy": "internal",
+      "kind": "handoff_packet",
+      "task_id": "execute",
+      "to": "codex-worker",
+      "objective": "Implement the scoped slice without touching unrelated files.",
+      "allowed_paths": [
+        "src/**",
+        "tests/**",
+        "docs/**"
+      ],
+      "denied_paths": [
+        ".env",
+        ".ssh/**"
+      ],
+      "return_contract": {
+        "required_fields": [
+          "summary",
+          "files_changed",
+          "tests_run",
+          "open_risks"
+        ]
+      },
+      "evidence_required": [
+        "artifact_tests_passed"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_intent_research",
+      "from": "intent",
+      "to": "research",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_research_plan",
+      "from": "research",
+      "to": "plan",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_plan_execute",
+      "from": "plan",
+      "to": "execute",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_execute_verify",
+      "from": "execute",
+      "to": "verify",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_verify_return",
+      "from": "verify",
+      "to": "return",
+      "kind": "produces"
+    },
+    {
+      "id": "edge_reverse_gate_execute",
+      "from": "gate_reverse_pass",
+      "to": "execute",
+      "kind": "guards"
+    },
+    {
+      "id": "edge_tests_gate_verify",
+      "from": "gate_tests",
+      "to": "verify",
+      "kind": "guards"
+    },
+    {
+      "id": "edge_reverse_evidence_gate",
+      "from": "artifact_reverse_pass",
+      "to": "gate_reverse_pass",
+      "kind": "validates"
+    },
+    {
+      "id": "edge_tests_evidence_gate",
+      "from": "artifact_tests_passed",
+      "to": "gate_tests",
+      "kind": "validates"
+    },
+    {
+      "id": "edge_execute_boundary",
+      "from": "execute",
+      "to": "boundary_codex_worker",
+      "kind": "hands_off_to"
+    }
+  ],
+  "nested_processes": [
+    {
+      "id": "intent_nested_process",
+      "parent_step_id": "intent",
+      "title": "Intent subprocess",
+      "entry_node_id": "intent_goal",
+      "result_node_id": "intent_risk",
+      "operations": [
+        {
+          "id": "intent_goal",
+          "title": "Capture goal",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "intent_constraints",
+          "title": "Capture constraints",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "intent_done_state",
+          "title": "Define done-state",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "intent_risk",
+          "title": "Set risk",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_intent_goal_constraints",
+          "from": "intent_goal",
+          "to": "intent_constraints",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_intent_constraints_done",
+          "from": "intent_constraints",
+          "to": "intent_done_state",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_intent_done_risk",
+          "from": "intent_done_state",
+          "to": "intent_risk",
+          "kind": "sequence"
+        }
+      ],
+      "attachment_ids": []
+    },
+    {
+      "id": "research_nested_process",
+      "parent_step_id": "research",
+      "title": "Research subprocess",
+      "entry_node_id": "research_local_artifacts",
+      "result_node_id": "research_narrative",
+      "operations": [
+        {
+          "id": "research_local_artifacts",
+          "title": "Check local artifacts",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "research_questions",
+          "title": "Frame questions",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "research_wide_net",
+          "title": "Search wide net",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "research_breadth_agents",
+          "title": "Run breadth agents",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "research_convergence",
+          "title": "Synthesize convergence",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "research_narrative",
+          "title": "Final narrative",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_research_local_questions",
+          "from": "research_local_artifacts",
+          "to": "research_questions",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_questions_wide",
+          "from": "research_questions",
+          "to": "research_wide_net",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_wide_breadth",
+          "from": "research_wide_net",
+          "to": "research_breadth_agents",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_breadth_convergence",
+          "from": "research_breadth_agents",
+          "to": "research_convergence",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_research_convergence_narrative",
+          "from": "research_convergence",
+          "to": "research_narrative",
+          "kind": "sequence"
+        }
+      ],
+      "attachment_ids": []
+    },
+    {
+      "id": "plan_nested_process",
+      "parent_step_id": "plan",
+      "title": "Plan subprocess",
+      "entry_node_id": "plan_decompose",
+      "result_node_id": "plan_revise",
+      "operations": [
+        {
+          "id": "plan_decompose",
+          "title": "Decompose work",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "plan_forward",
+          "title": "Forward plan",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "plan_reverse",
+          "title": "Reverse pass",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "plan_revise",
+          "title": "Revise plan",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_plan_decompose_forward",
+          "from": "plan_decompose",
+          "to": "plan_forward",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_plan_forward_reverse",
+          "from": "plan_forward",
+          "to": "plan_reverse",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_plan_reverse_revise",
+          "from": "plan_reverse",
+          "to": "plan_revise",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_plan_reverse_artifact",
+          "from": "plan_reverse",
+          "to": "artifact_reverse_pass",
+          "kind": "produces"
+        },
+        {
+          "id": "edge_plan_artifact_gate",
+          "from": "artifact_reverse_pass",
+          "to": "gate_reverse_pass",
+          "kind": "validates"
+        }
+      ],
+      "attachment_ids": [
+        "artifact_reverse_pass",
+        "gate_reverse_pass"
+      ]
+    },
+    {
+      "id": "execute_nested_process",
+      "parent_step_id": "execute",
+      "title": "Execute subprocess",
+      "entry_node_id": "execute_confirm_scope",
+      "result_node_id": "execute_integrate",
+      "operations": [
+        {
+          "id": "execute_confirm_scope",
+          "title": "Confirm scope",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "execute_delegate_worker",
+          "title": "Delegate worker",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "execute_integrate",
+          "title": "Integrate return",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_execute_scope_delegate",
+          "from": "execute_confirm_scope",
+          "to": "execute_delegate_worker",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_execute_delegate_boundary",
+          "from": "execute_delegate_worker",
+          "to": "boundary_codex_worker",
+          "kind": "delegates_to"
+        },
+        {
+          "id": "edge_execute_delegate_integrate",
+          "from": "execute_delegate_worker",
+          "to": "execute_integrate",
+          "kind": "sequence"
+        }
+      ],
+      "attachment_ids": [
+        "boundary_codex_worker"
+      ]
+    },
+    {
+      "id": "verify_nested_process",
+      "parent_step_id": "verify",
+      "title": "Verify subprocess",
+      "entry_node_id": "verify_run_checks",
+      "result_node_id": "verify_validate_evidence",
+      "operations": [
+        {
+          "id": "verify_run_checks",
+          "title": "Run checks",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "verify_inspect_outputs",
+          "title": "Inspect outputs",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "verify_validate_evidence",
+          "title": "Validate evidence",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_verify_checks_artifact",
+          "from": "verify_run_checks",
+          "to": "artifact_tests_passed",
+          "kind": "produces"
+        },
+        {
+          "id": "edge_verify_artifact_gate",
+          "from": "artifact_tests_passed",
+          "to": "gate_tests",
+          "kind": "validates"
+        },
+        {
+          "id": "edge_verify_checks_outputs",
+          "from": "verify_run_checks",
+          "to": "verify_inspect_outputs",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_verify_outputs_evidence",
+          "from": "verify_inspect_outputs",
+          "to": "verify_validate_evidence",
+          "kind": "sequence"
+        }
+      ],
+      "attachment_ids": [
+        "artifact_tests_passed",
+        "gate_tests"
+      ]
+    },
+    {
+      "id": "return_nested_process",
+      "parent_step_id": "return",
+      "title": "Return subprocess",
+      "entry_node_id": "return_summary",
+      "result_node_id": "return_next_slice",
+      "operations": [
+        {
+          "id": "return_summary",
+          "title": "Summarize result",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "return_evidence",
+          "title": "List evidence",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "return_risks",
+          "title": "Name risks",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        },
+        {
+          "id": "return_next_slice",
+          "title": "Set next slice",
+          "privacy": "internal",
+          "kind": "operation",
+          "operation_kind": "activity"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_return_summary_evidence",
+          "from": "return_summary",
+          "to": "return_evidence",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_return_evidence_risks",
+          "from": "return_evidence",
+          "to": "return_risks",
+          "kind": "sequence"
+        },
+        {
+          "id": "edge_return_risks_next",
+          "from": "return_risks",
+          "to": "return_next_slice",
+          "kind": "sequence"
+        }
+      ],
+      "attachment_ids": []
+    }
+  ],
+  "generated_outputs": [
+    ".workpath/workflow_program.json",
+    ".workpath/generated/codex-handoff.md",
+    ".workpath/generated/context-pack.json",
+    ".workpath/generated/tool-policy.json"
+  ]
+}

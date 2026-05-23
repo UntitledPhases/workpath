@@ -13,7 +13,7 @@ interface ExportPanelProps {
 }
 
 export function ExportPanel({ dirty, issues, onReset, sop, valid }: ExportPanelProps) {
-  const [selectedFile, setSelectedFile] = useState("sop.json");
+  const [selectedFile, setSelectedFile] = useState(".workpath/workflow_program.json");
   const files = useMemo(() => (valid ? buildWorkpathExportFiles(sop) : undefined), [sop, valid]);
   const fileNames = files ? Object.keys(files).sort() : [];
   const previewName = files?.[selectedFile] ? selectedFile : fileNames[0];
@@ -28,7 +28,7 @@ export function ExportPanel({ dirty, issues, onReset, sop, valid }: ExportPanelP
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${sop.id || "workpath"}-ideate-bundle.zip`;
+    anchor.download = `${sop.id || "workpath"}-workpath-bundle.zip`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -44,7 +44,7 @@ export function ExportPanel({ dirty, issues, onReset, sop, valid }: ExportPanelP
       </div>
       {valid ? (
         <>
-          <p>{fileNames.length} files compile from the current draft.</p>
+          <p>{fileNames.length} files compile from the current draft, including the workflow program.</p>
           <div className="export-actions">
             <button type="button" onClick={downloadZip}>
               Download ZIP

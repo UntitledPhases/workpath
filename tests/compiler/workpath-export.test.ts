@@ -9,6 +9,7 @@ describe("Workpath browser export", () => {
     const files = buildWorkpathExportFiles(seed, { createdAt: "2026-05-20T20:00:00.000Z" });
 
     expect(Object.keys(files).sort()).toEqual([
+      ".workpath/workflow_program.json",
       "artifacts.jsonl",
       "canvas.json",
       "events.jsonl",
@@ -25,6 +26,7 @@ describe("Workpath browser export", () => {
     expect(files["tasks.jsonl"]).toContain('"artifact_type":"task"');
     expect(files["sop.json"]).toContain('"title": "Project SOP"');
     expect(files["workpath.json"]).toContain('"export_mode": "specification"');
+    expect(files[".workpath/workflow_program.json"]).toContain('"kind": "workflow_program"');
   });
 
   it("creates a valid uncompressed zip payload", async () => {

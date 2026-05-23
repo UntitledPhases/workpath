@@ -1,5 +1,6 @@
 import { compileToIdeateBundle, IDEATE_FILES } from "../ideate/compiler.js";
 import { type SopGraph } from "../sop/index.js";
+import { compileToWorkflowProgram } from "./program.js";
 
 export interface WorkpathExportOptions {
   compilerVersion?: string;
@@ -22,6 +23,7 @@ export function buildWorkpathExportFiles(
   }
   return {
     ...files,
+    ".workpath/workflow_program.json": `${JSON.stringify(compileToWorkflowProgram(source), null, 2)}\n`,
     "sop.json": `${JSON.stringify(source, null, 2)}\n`,
     "canvas.json": `${JSON.stringify(source.canvas, null, 2)}\n`,
     "workpath.json": `${JSON.stringify(

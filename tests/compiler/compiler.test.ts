@@ -85,7 +85,7 @@ describe("SOP to Ideate compiler", () => {
     expect(bundle).toMatchSnapshot();
   });
 
-  it("writes a Workpath export manifest beside source files", async () => {
+  it("writes Workpath control artifacts beside source files", async () => {
     const sop = await readSeedSop();
     const bundle = compileToIdeateBundle(sop, OPTIONS);
     const outDir = await mkdtemp(join(tmpdir(), "workpath-emitter-"));
@@ -100,10 +100,18 @@ describe("SOP to Ideate compiler", () => {
         export_mode: string;
         sop_id: string;
       };
+      const program = JSON.parse(await readFile(join(outDir, ".workpath", "workflow_program.json"), "utf8")) as {
+        kind: string;
+        source_sop_id: string;
+      };
 
       expect(manifest).toMatchObject({
         export_mode: "specification",
         sop_id: "sop_project_loop"
+      });
+      expect(program).toMatchObject({
+        kind: "workflow_program",
+        source_sop_id: "sop_project_loop"
       });
     } finally {
       await rm(outDir, { recursive: true, force: true });

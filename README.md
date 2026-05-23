@@ -2,10 +2,14 @@
 
 Local-first structured SOP composer for AI work nodes.
 
-Workpath is the forward-mode authoring companion to Ideate:
+Workpath is the visual SOP programming layer for AI work. It compiles one
+authoring graph into two outputs: a programmable harness artifact for agents and
+an Ideate-compatible evidence/audit bundle.
 
 ```text
-author sop.json -> compile Ideate JSONL bundle -> validate with agentic-sdlc
+author sop.json -> compile .workpath/workflow_program.json
+                -> compile Ideate JSONL bundle
+                -> validate with agentic-sdlc
 ```
 
 This repository is local-only until the product is complete enough to publish.
@@ -18,7 +22,8 @@ the native SOP draft. The canvas uses a two-level nested-process grammar: the
 overview shows only lifecycle process steps, while opening a step zooms into a
 large process frame containing that step's child workflow and attached gates,
 evidence, or handoff contracts. The side rail edits selected objects and
-compiles the current draft into a downloadable Ideate bundle.
+compiles the current draft into a downloadable bundle that includes
+`.workpath/workflow_program.json`.
 
 ```powershell
 npm install
@@ -31,9 +36,11 @@ agentic-sdlc validate examples\exported-project-sop
 agentic-sdlc visualize examples\exported-project-sop --format svg --output examples\exported-project-sop\workflow.svg
 ```
 
-The compiler reads [examples/seed-project-sop.json](examples/seed-project-sop.json),
-emits [examples/exported-project-sop](examples/exported-project-sop), and proves
-that the output is accepted by Ideate.
+The compiler reads [examples/seed-project-sop.json](examples/seed-project-sop.json)
+and emits [examples/exported-project-sop](examples/exported-project-sop). The
+Ideate JSONL output proves the audit/evidence records validate, while
+`.workpath/workflow_program.json` preserves the programmable operating process
+for downstream agent adapters.
 
 The app seeds from [examples/seed-project-sop.json](examples/seed-project-sop.json)
 and keeps edits in browser draft state. The compiled bundle is an output
@@ -58,12 +65,15 @@ artifact, not the authoring source.
 - Slice 3 editing is intentionally structured: object fields, activity
   add/move/delete, and canvas drag positions are editable; arbitrary edge drawing
   is deferred.
+- Slice 4a adds the first harness-oriented compile target:
+  `.workpath/workflow_program.json`. It is the source artifact future Codex,
+  Claude, GitHub, n8n, or internal-runner adapters should read.
 
 ## Boundary
 
 V1 does not run agents, publish to GitHub, deploy to Vercel, create org-level
-workflows, or generate prompts. It authors a single-node SOP graph and compiles
-that graph into validated workflow records.
+workflows, or execute prompts. It authors a single-node SOP graph and compiles
+that graph into a workflow program plus validated evidence records.
 
 ## Slice Plan
 
@@ -74,7 +84,10 @@ that graph into validated workflow records.
 - Slice 3 complete: editable draft state, structured inspector editing, nested
   process activity operations, drag-persisted canvas positions, and browser ZIP
   export.
-- Slice 4: broader graph authoring, templates, stronger validation UX, and
+- Slice 4a complete: workflow program export and simplified profile-first
+  inspector controls.
+- Slice 4: explicit decision/agent-group/context-pack nodes, templates,
+  stronger validation UX, generated handoff Markdown, and
   publish-readiness pass.
 
 ## Local-Only Discipline
