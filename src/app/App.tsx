@@ -1,9 +1,24 @@
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 
 import { seedSop } from "./seed.js";
-import { findSopSelection, subprocessForStep } from "../domain/sop/index.js";
+import {
+  addActivity,
+  cloneSop,
+  deleteActivity,
+  findSopSelection,
+  moveActivity,
+  sopGraphSchema,
+  subprocessForStep,
+  type SopGraph,
+  type SopNode,
+  type SubprocessNode,
+  updateCanvasPosition,
+  updateSopNode,
+  updateSubprocessNode
+} from "../domain/sop/index.js";
 import { SopCanvas } from "../ui/canvas/SopCanvas.js";
 import { type CanvasScope } from "../ui/canvas/flowModel.js";
+import { ExportPanel } from "../ui/side-panel/ExportPanel.js";
 import { SopInspector } from "../ui/side-panel/SopInspector.js";
 
 const MODULE_LEGEND = [
@@ -17,16 +32,19 @@ const MODULE_LEGEND = [
 
 export function App() {
   const initialState = useMemo(() => initialAppState(), []);
+  const [draftSop, setDraftSop] = useState<SopGraph>(() => cloneSop(seedSop));
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(initialState.selectedNodeId);
   const [viewStepId, setViewStepId] = useState<string | undefined>(initialState.viewStepId);
-  const selected = findSopSelection(seedSop, selectedNodeId);
+  const validation = useMemo(() => sopGraphSchema.safeParse(draftSop), [draftSop]);
+  const selected = findSopSelection(draftSop, selectedNodeId);
   const scope: CanvasScope = viewStepId ? { kind: "subprocess", stepId: viewStepId } : { kind: "overview" };
   const srNodes = [
-    ...seedSop.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title })),
-    ...seedSop.subprocesses.flatMap((subprocess) =>
+    ...draftSop.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title })),
+    ...draftSop.subprocesses.flatMap((subprocess) =>
       subprocess.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title }))
     )
   ];
+  const dirty = useMemo(() => JSON.stringify(draftSop) !== JSON.stringify(seedSop), [draftSop]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -38,7 +56,7 @@ export function App() {
   }, [selectedNodeId, viewStepId]);
 
   function handleSelectNode(nodeId?: string) {
-    const selection = findSopSelection(seedSop, nodeId);
+    const selection = findSopSelection(draftSop, nodeId);
     if (selection?.parentStepId && selection.node.kind !== "step") {
       setViewStepId(selection.parentStepId);
     }
@@ -46,7 +64,7 @@ export function App() {
   }
 
   function handleOpenStep(stepId: string) {
-    if (!subprocessForStep(seedSop, stepId)) {
+    if (!subprocessForStep(draftSop, stepId)) {
       return;
     }
     setViewStepId(stepId);
@@ -54,7 +72,45 @@ export function App() {
   }
 
   function handleBackToOverview() {
-    setSelectedNodeId(viewStepId ?? seedSop.entry_node_id);
+    setSelectedNodeId(viewStepId ?? draftSop.entry_node_id);
+    setViewStepId(undefined);
+  }
+
+  function handleUpdateNode(nodeId: string, updater: (node: SopNode) => SopNode) {
+    setDraftSop((current) => updateSopNode(current, nodeId, updater));
+  }
+
+  function handleUpdateSubprocessNode(nodeId: string, updater: (node: SubprocessNode) => SubprocessNode) {
+    setDraftSop((current) => updateSubprocessNode(current, nodeId, updater));
+  }
+
+  function handleAddActivity(parentStepId: string) {
+    setDraftSop((current) => {
+      const result = addActivity(current, parentStepId);
+      if (result.activityId) {
+        setSelectedNodeId(result.activityId);
+        setViewStepId(parentStepId);
+      }
+      return result.sop;
+    });
+  }
+
+  function handleDeleteActivity(parentStepId: string, activityId: string) {
+    setDraftSop((current) => deleteActivity(current, parentStepId, activityId));
+    setSelectedNodeId(parentStepId);
+  }
+
+  function handleMoveActivity(parentStepId: string, activityId: string, direction: -1 | 1) {
+    setDraftSop((current) => moveActivity(current, parentStepId, activityId, direction));
+  }
+
+  function handleMoveNode(nodeId: string, position: { x: number; y: number }, parentStepId?: string) {
+    setDraftSop((current) => updateCanvasPosition(current, nodeId, position, parentStepId));
+  }
+
+  function handleReset() {
+    setDraftSop(cloneSop(seedSop));
+    setSelectedNodeId(seedSop.entry_node_id);
     setViewStepId(undefined);
   }
 
@@ -66,9 +122,10 @@ export function App() {
           <h1>{seedSop.title}</h1>
         </div>
         <div className="status-strip">
-          <span>{formatKind(seedSop.kind)}</span>
-          <span>6 process nodes</span>
-          <span>{seedSop.subprocesses.length} nested processes</span>
+          <span>{formatKind(draftSop.kind)}</span>
+          <span>{draftSop.nodes.filter((node) => node.kind === "step").length} process nodes</span>
+          <span>{draftSop.subprocesses.length} nested processes</span>
+          <span>{validation.success ? "valid draft" : "invalid draft"}</span>
         </div>
       </header>
       <div className="module-legend" aria-label="Module colors">
@@ -95,13 +152,31 @@ export function App() {
         </nav>
         <SopCanvas
           scope={scope}
-          sop={seedSop}
+          sop={draftSop}
           selectedNodeId={selectedNodeId}
           onBackToOverview={handleBackToOverview}
+          onMoveNode={handleMoveNode}
           onOpenStep={handleOpenStep}
           onSelectNode={handleSelectNode}
         />
-        <SopInspector sop={seedSop} selection={selected} />
+        <div className="side-rail">
+          <SopInspector
+            onAddActivity={handleAddActivity}
+            onDeleteActivity={handleDeleteActivity}
+            onMoveActivity={handleMoveActivity}
+            onUpdateNode={handleUpdateNode}
+            onUpdateSubprocessNode={handleUpdateSubprocessNode}
+            sop={draftSop}
+            selection={selected}
+          />
+          <ExportPanel
+            dirty={dirty}
+            issues={validation.success ? [] : validation.error.issues}
+            onReset={handleReset}
+            sop={draftSop}
+            valid={validation.success}
+          />
+        </div>
       </section>
     </main>
   );

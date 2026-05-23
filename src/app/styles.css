@@ -96,7 +96,7 @@ h1 {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 380px;
   min-height: 0;
   position: relative;
 }
@@ -441,11 +441,20 @@ h1 {
   width: 1px;
 }
 
-.inspector {
+.side-rail {
   background: #f8fafc;
   border-left: 1px solid #dbe3ef;
   overflow: auto;
+}
+
+.inspector {
   padding: 20px;
+}
+
+.inspector-empty {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .inspector-header {
@@ -494,6 +503,166 @@ dd {
   overflow-wrap: anywhere;
 }
 
+.inspector-editor {
+  border-top: 1px solid #dbe3ef;
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+}
+
+.editor-form {
+  display: grid;
+  gap: 11px;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+}
+
+.field span,
+.checkbox-field {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+.field textarea {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+  min-height: 32px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.field textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  border-color: #64748b;
+  outline: 2px solid #94a3b8;
+  outline-offset: 2px;
+}
+
+.checkbox-field {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.checkbox-field input {
+  height: 15px;
+  width: 15px;
+}
+
+.inline-actions,
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-actions button,
+.secondary-action,
+.export-actions button {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #111827;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 9px;
+}
+
+.inline-actions button:hover,
+.secondary-action:hover,
+.export-actions button:hover,
+.inline-actions button:focus-visible,
+.secondary-action:focus-visible,
+.export-actions button:focus-visible {
+  border-color: #64748b;
+  outline: 2px solid #94a3b8;
+  outline-offset: 2px;
+}
+
+.export-panel {
+  border-top: 1px solid #dbe3ef;
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px 20px;
+}
+
+.export-panel-header {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.export-panel-header span {
+  color: #64748b;
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.export-panel-header strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.25;
+  margin-top: 3px;
+}
+
+.dirty-indicator {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #475569;
+  padding: 5px 8px;
+}
+
+.dirty-indicator.is-dirty {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.export-panel p,
+.validation-issues p {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.export-preview {
+  background: #0f172a;
+  border-radius: 6px;
+  color: #dbeafe;
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     grid-template-rows: 76px 32px minmax(0, 1fr);
@@ -504,7 +673,7 @@ dd {
     grid-template-rows: minmax(420px, 1fr) 260px;
   }
 
-  .inspector {
+  .side-rail {
     border-left: 0;
     border-top: 1px solid #dbe3ef;
   }

@@ -6,6 +6,7 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  type OnNodeDrag,
   type NodeMouseHandler
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -30,6 +31,7 @@ interface SopCanvasProps {
   sop: SopGraph;
   selectedNodeId?: string;
   onBackToOverview: () => void;
+  onMoveNode: (nodeId: string, position: { x: number; y: number }, parentStepId?: string) => void;
   onOpenStep: (stepId: string) => void;
   onSelectNode: (nodeId?: string) => void;
 }
@@ -42,7 +44,15 @@ export function SopCanvas(props: SopCanvasProps) {
   );
 }
 
-function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenStep, onSelectNode }: SopCanvasProps) {
+function SopCanvasInner({
+  scope,
+  sop,
+  selectedNodeId,
+  onBackToOverview,
+  onMoveNode,
+  onOpenStep,
+  onSelectNode
+}: SopCanvasProps) {
   const nodes = useMemo(
     () =>
       toFlowNodes(sop, scope, selectedNodeId).map((node) => {
@@ -94,6 +104,19 @@ function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenSt
       onOpenStep(node.id);
     }
   };
+  const handleNodeDragStop: OnNodeDrag = (_, node) => {
+    if (!isSopFlowNode(node)) {
+      return;
+    }
+    onMoveNode(
+      node.id,
+      {
+        x: node.position.x - node.data.sourcePositionOffset.x,
+        y: node.position.y - node.data.sourcePositionOffset.y
+      },
+      node.data.layer === "overview" ? undefined : node.data.parentStepId
+    );
+  };
 
   return (
     <div className={`canvas-shell canvas-shell-${scope.kind}`} data-testid="sop-canvas">
@@ -125,8 +148,9 @@ function SopCanvasInner({ scope, sop, selectedNodeId, onBackToOverview, onOpenSt
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
         onNodeDoubleClick={handleNodeDoubleClick}
+        onNodeDragStop={handleNodeDragStop}
         onPaneClick={() => onSelectNode(undefined)}
-        nodesDraggable={false}
+        nodesDraggable
         nodesConnectable={false}
         edgesFocusable={false}
         fitView

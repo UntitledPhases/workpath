@@ -13,11 +13,12 @@ There is no remote, no deployment config, and no runtime agent execution.
 
 ## Current Slice
 
-Workpath now has the compiler-first path plus a read-only React Flow canvas over
-the native seed SOP. The canvas uses a two-level nested-process grammar: the
+Workpath now has the compiler-first path plus an editable React Flow canvas over
+the native SOP draft. The canvas uses a two-level nested-process grammar: the
 overview shows only lifecycle process steps, while opening a step zooms into a
 large process frame containing that step's child workflow and attached gates,
-evidence, or handoff contracts.
+evidence, or handoff contracts. The side rail edits selected objects and
+compiles the current draft into a downloadable Ideate bundle.
 
 ```powershell
 npm install
@@ -34,8 +35,9 @@ The compiler reads [examples/seed-project-sop.json](examples/seed-project-sop.js
 emits [examples/exported-project-sop](examples/exported-project-sop), and proves
 that the output is accepted by Ideate.
 
-The canvas also reads [examples/seed-project-sop.json](examples/seed-project-sop.json)
-directly. The compiled bundle is an output artifact, not the authoring source.
+The app seeds from [examples/seed-project-sop.json](examples/seed-project-sop.json)
+and keeps edits in browser draft state. The compiled bundle is an output
+artifact, not the authoring source.
 
 ## Workflow Grammar
 
@@ -53,6 +55,9 @@ directly. The compiled bundle is an output artifact, not the authoring source.
   clickable diamonds on the guarded transition instead of as branch nodes.
 - Handoff boundaries render as side-docked ports off the activity that delegates
   work, while the boundary record remains available in the inspector/export.
+- Slice 3 editing is intentionally structured: object fields, activity
+  add/move/delete, and canvas drag positions are editable; arbitrary edge drawing
+  is deferred.
 
 ## Boundary
 
@@ -66,7 +71,11 @@ that graph into validated workflow records.
 - Slice 2 complete: read-only React Flow canvas over the seed SOP.
 - Slice 2.5 complete: drilldown canvas view, gate-on-transition rendering,
   artifact docking, and handoff side-port rendering.
-- Slice 3: editing, ZIP export, and browser-to-Ideate validation loop.
+- Slice 3 complete: editable draft state, structured inspector editing, nested
+  process activity operations, drag-persisted canvas positions, and browser ZIP
+  export.
+- Slice 4: broader graph authoring, templates, stronger validation UX, and
+  publish-readiness pass.
 
 ## Local-Only Discipline
 

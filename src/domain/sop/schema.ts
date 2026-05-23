@@ -316,6 +316,7 @@ export type GateNode = z.infer<typeof gateNodeSchema>;
 export type EvidenceNode = z.infer<typeof evidenceNodeSchema>;
 export type BoundaryNode = z.infer<typeof boundaryNodeSchema>;
 export type SopEdge = z.infer<typeof sopEdgeSchema>;
+export type CanvasNode = z.infer<typeof canvasNodeSchema>;
 export type SubprocessNode = z.infer<typeof subprocessNodeSchema>;
 export type SubprocessEdge = z.infer<typeof subprocessEdgeSchema>;
 export type SopSubprocess = z.infer<typeof subprocessSchema>;

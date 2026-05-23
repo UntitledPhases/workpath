@@ -48,6 +48,7 @@ export interface SopFlowNodeData extends Record<string, unknown> {
   onOpenStep?: (stepId: string) => void;
   parentStepId?: string;
   selected: boolean;
+  sourcePositionOffset: { x: number; y: number };
 }
 
 export interface ProcessFrameNodeData extends Record<string, unknown> {
@@ -78,7 +79,7 @@ export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: 
   if (scope.kind === "overview") {
     return processSteps(sop).map((node) => {
       const position = canvasPositions.get(node.id) ?? { x: 0, y: 0 };
-      return toFlowNode(sop, node, "overview", position, selectedNodeId, node.id);
+      return toFlowNode(sop, node, "overview", position, selectedNodeId, node.id, undefined, { x: 0, y: 0 });
     });
   }
 
@@ -112,7 +113,8 @@ export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: 
         frameLayout.toFramePosition(sourcePosition),
         selectedNodeId,
         scope.stepId,
-        frameId
+        frameId,
+        frameLayout.sourcePositionOffset
       )
     );
   }
@@ -130,7 +132,8 @@ export function toFlowNodes(sop: SopGraph, scope: CanvasScope, selectedNodeId?: 
         frameLayout.toFramePosition(sourcePosition),
         selectedNodeId,
         scope.stepId,
-        frameId
+        frameId,
+        frameLayout.sourcePositionOffset
       )
     );
   }
@@ -175,7 +178,8 @@ function toFlowNode(
   position: { x: number; y: number },
   selectedNodeId: string | undefined,
   parentStepId?: string,
-  frameId?: string
+  frameId?: string,
+  sourcePositionOffset: { x: number; y: number } = { x: 0, y: 0 }
 ): SopFlowNode {
   const dimensions = nodeDimensions(node.kind, layer);
   return {
@@ -187,7 +191,8 @@ function toFlowNode(
       layer,
       node,
       parentStepId,
-      selected: node.id === selectedNodeId
+      selected: node.id === selectedNodeId,
+      sourcePositionOffset
     },
     initialWidth: dimensions.width,
     initialHeight: dimensions.height,
@@ -236,12 +241,17 @@ function nestedProcessFrameLayout(
   canvasPositions: Map<string, { x: number; y: number }>
 ): {
   height: number;
+  sourcePositionOffset: { x: number; y: number };
   toFramePosition: (position: { x: number; y: number }) => { x: number; y: number };
   width: number;
 } {
   if (!items.length) {
     return {
       height: 360,
+      sourcePositionOffset: {
+        x: FRAME_PADDING_X,
+        y: FRAME_PADDING_TOP
+      },
       toFramePosition: (position) => ({
         x: position.x + FRAME_PADDING_X,
         y: position.y + FRAME_PADDING_TOP
@@ -266,6 +276,10 @@ function nestedProcessFrameLayout(
 
   return {
     height: bounds.maxY - bounds.minY + FRAME_PADDING_TOP + FRAME_PADDING_BOTTOM,
+    sourcePositionOffset: {
+      x: FRAME_PADDING_X - bounds.minX,
+      y: FRAME_PADDING_TOP - bounds.minY
+    },
     toFramePosition: (position) => ({
       x: position.x - bounds.minX + FRAME_PADDING_X,
       y: position.y - bounds.minY + FRAME_PADDING_TOP

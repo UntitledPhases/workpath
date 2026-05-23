@@ -11,6 +11,7 @@ describe("SopNode", () => {
       defaultPrivacy: "internal",
       layer: "overview",
       selected: true,
+      sourcePositionOffset: { x: 0, y: 0 },
       node: {
         id: "execute",
         kind: "step",
@@ -52,6 +53,7 @@ describe("SopNode", () => {
       defaultPrivacy: "internal",
       layer: "overview",
       selected: false,
+      sourcePositionOffset: { x: 0, y: 0 },
       node: {
         id: "intent",
         kind: "step",

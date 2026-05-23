@@ -167,4 +167,27 @@ describe("App", () => {
     expect(await screen.findByRole("button", { name: "activity: Delegate worker" })).toBeTruthy();
     expect(screen.getByTestId("sop-inspector").textContent).toContain("Worker handoff");
   });
+
+  it("edits the selected node title through the inspector and marks the draft dirty", async () => {
+    render(<App />);
+
+    const title = await screen.findByLabelText("title");
+    fireEvent.change(title, { target: { value: "Clarify intent" } });
+
+    expect(screen.getByTestId("sop-inspector").textContent).toContain("Clarify intent");
+    expect(screen.getByTestId("export-panel").textContent).toContain("edited");
+    expect(screen.getByRole("button", { name: "step: Clarify intent" })).toBeTruthy();
+  });
+
+  it("adds a nested process activity from the inspector", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute work" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open Execute work" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add activity" }));
+
+    expect(await screen.findByRole("button", { name: "activity: New activity" })).toBeTruthy();
+    expect(screen.getByTestId("sop-inspector").textContent).toContain("New activity");
+    expect(screen.getByTestId("export-panel").textContent).toContain("Ready");
+  });
 });
