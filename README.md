@@ -18,8 +18,20 @@ author sop.json -> compile .workpath/workflow_program.json
                 -> validate with agentic-sdlc
 ```
 
-This repository is local-only until the product is complete enough to publish.
-There is no remote, no deployment config, and no runtime agent execution.
+This repository is public source code, but there is no hosted deployment or
+runtime agent execution yet.
+
+## Proof of Concept
+
+The smallest Workpath proof is a raw-vs-treated Codex comparison:
+
+- Raw Codex receives a normal business decision prompt.
+- Treated Codex receives the same prompt plus a small Workpath workflow packet.
+- The outputs are scored for decision framing, breadth before synthesis,
+  structured comparison, risk handling, uncertainty, and workflow adherence.
+
+See [docs/proof-of-concept.md](docs/proof-of-concept.md) and
+[examples/raw-vs-treated](examples/raw-vs-treated).
 
 ## Current Slice
 
@@ -119,7 +131,8 @@ that graph into an agent packet plus validated evidence records.
   stronger validation UX, generated handoff Markdown, JSONL schemas, and
   publish-readiness pass.
 
-## Local-Only Discipline
+## Publication Status
 
-This repo intentionally has no remote. Do not run `gh repo create`, `git remote
-add`, or deploy commands until the product is full enough to publish.
+This repo is public, but Workpath is still a local-first prototype. Do not add
+deployment, hosted runtime execution, or external side effects without making
+that boundary explicit in the docs and tests.
