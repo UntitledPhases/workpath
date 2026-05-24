@@ -107,6 +107,15 @@ describe("SOP to Ideate compiler", () => {
         source_sop_id: string;
       };
       const instructions = await readFile(join(outDir, ".workpath", "generated", "operator-instructions.md"), "utf8");
+      const hookJson = JSON.parse(await readFile(join(outDir, ".workpath", "generated", "workflow-hook.json"), "utf8")) as {
+        kind: string;
+        profile: {
+          trigger: {
+            task_types: string[];
+          };
+        };
+      };
+      const hookMarkdown = await readFile(join(outDir, ".workpath", "generated", "workflow-hook.md"), "utf8");
       const toolPolicy = await readFile(join(outDir, ".workpath", "generated", "tool-policy.json"), "utf8");
       const contextPack = await readFile(join(outDir, ".workpath", "generated", "context-pack.json"), "utf8");
 
@@ -116,10 +125,20 @@ describe("SOP to Ideate compiler", () => {
         sop_id: "sop_project_loop"
       });
       expect(manifest.read_order).toContain(".workpath/generated/operator-instructions.md");
+      expect(manifest.read_order).toContain(".workpath/generated/workflow-hook.json");
       expect(program).toMatchObject({
         kind: "workflow_program",
         source_sop_id: "sop_project_loop"
       });
+      expect(hookJson).toMatchObject({
+        kind: "workpath_workflow_hook",
+        profile: {
+          trigger: {
+            task_types: ["ambiguous_project", "research_heavy_decision", "multi_phase_build", "workflow_design"]
+          }
+        }
+      });
+      expect(hookMarkdown).toContain("Use This Workflow When");
       expect(instructions).toContain("Run 40 independent cheap worker pass(es).");
       expect(toolPolicy).toContain('"workpath_tool_policy"');
       expect(contextPack).toContain('"workpath_context_pack"');

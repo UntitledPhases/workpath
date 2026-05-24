@@ -6,6 +6,11 @@
   "default_privacy": "internal",
   "static_context": [
     {
+      "id": "workflow_hook",
+      "path": ".workpath/generated/workflow-hook.json",
+      "purpose": "Activation rules, non-activation rules, guardrails, and return contract."
+    },
+    {
       "id": "workflow_program",
       "path": ".workpath/workflow_program.json",
       "purpose": "Canonical machine-readable workflow contract."
@@ -30,6 +35,17 @@
       ],
       "purpose": "Evidence, handoff, task, and runtime JSONL records."
     }
+  ],
+  "task_types": [
+    "ambiguous_project",
+    "research_heavy_decision",
+    "multi_phase_build",
+    "workflow_design"
+  ],
+  "activation_rules": [
+    "Use when the user asks for planning, implementation, repo work, research-backed decisions, or workflow design that needs more than a tiny direct answer.",
+    "Use when the task benefits from explicit intent extraction, local context inspection, phased work, verification, or handoff discipline.",
+    "Use when the operator asks to use Project SOP, the autonomy loop, a rigorous protocol, or a forward/reverse planning pass."
   ],
   "operation_inputs": [
     {

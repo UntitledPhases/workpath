@@ -7,11 +7,13 @@ Workpath has four separate layers:
 - `src/domain/ideate`: compiler and Ideate-compatible audit/evidence records.
 - `src/ui`: React Flow projection and inspector controls.
 
-The native `sop.json` model is the source of truth. Ideate JSONL is compiler
-output. `.workpath/workflow_program.json` is the adapter-facing control
-contract. Generated packet files translate the workflow program into
-human/LLM-readable instructions, context guidance, and tool policy. The canvas
-must project the SOP graph; it must not make React Flow state the domain model.
+The native `sop.json` model is the source of truth. Its `profile` block is the
+workflow hook: activation rules, non-activation rules, goal, guardrails, and
+return contract. Ideate JSONL is compiler output. `.workpath/workflow_program.json`
+is the adapter-facing control contract. Generated packet files translate the
+workflow program into hook JSON/Markdown, human/LLM-readable instructions,
+context guidance, and tool policy. The canvas must project the SOP graph; it
+must not make React Flow state the domain model.
 
 Compiler-first slices deliberately keep domain contracts ahead of UI concerns.
 The Research fanout path is the first vertical proof: one visual operation

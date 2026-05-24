@@ -8,8 +8,28 @@ describe("native SOP schema", () => {
     const sop = await readSeedSop();
 
     expect(sop.kind).toBe("single_node_sop");
+    expect(sop.profile.trigger.activation_rules.length).toBeGreaterThan(0);
+    expect(sop.profile.return_contract.required_sections).toContain("summary");
     expect(sop.nodes).toHaveLength(11);
     expect(sop.subprocesses).toHaveLength(6);
+  });
+
+  it("rejects a workflow profile without activation rules", async () => {
+    const sop = await readSeedSop();
+    const invalid = {
+      ...sop,
+      profile: {
+        ...sop.profile,
+        trigger: {
+          ...sop.profile.trigger,
+          activation_rules: []
+        }
+      }
+    };
+
+    const result = sopGraphSchema.safeParse(invalid);
+
+    expect(result.success).toBe(false);
   });
 
   it("rejects a gate without task_id", async () => {

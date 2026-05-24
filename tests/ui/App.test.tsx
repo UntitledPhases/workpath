@@ -207,4 +207,31 @@ describe("App", () => {
     expect(screen.getByTestId("export-panel").textContent).toContain("edited");
     expect(screen.getByTestId("export-panel").textContent).toContain("Run 12 independent cheap worker pass(es).");
   });
+
+  it("edits the workflow profile and recompiles the hook packet", async () => {
+    const { container } = render(<App />);
+    const pane = container.querySelector(".react-flow__pane");
+    if (!pane) {
+      throw new Error("Missing React Flow pane");
+    }
+    fireEvent.click(pane);
+
+    expect(screen.getByTestId("sop-inspector").textContent).toContain("workflow profile");
+
+    fireEvent.change(await screen.findByLabelText("goal"), {
+      target: { value: "Route messy operator requests into a bounded agent workflow." }
+    });
+    fireEvent.change(screen.getByLabelText("return_sections"), {
+      target: { value: "summary, proof, next_action" }
+    });
+    fireEvent.change(screen.getByLabelText("preview"), {
+      target: { value: ".workpath/generated/workflow-hook.md" }
+    });
+
+    expect(screen.getByTestId("export-panel").textContent).toContain("edited");
+    expect(screen.getByTestId("export-panel").textContent).toContain(
+      "Route messy operator requests into a bounded agent workflow."
+    );
+    expect(screen.getByTestId("export-panel").textContent).toContain("- proof");
+  });
 });

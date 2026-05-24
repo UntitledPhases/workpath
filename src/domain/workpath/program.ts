@@ -13,8 +13,13 @@ import {
   type SubprocessEdge,
   type SubprocessNode,
   operationActionSchema,
-  sopGraphSchema
+  sopGraphSchema,
+  workflowProfileSchema
 } from "../sop/index.js";
+import {
+  WORKPATH_GENERATED_PACKET_FILES,
+  WORKPATH_PROGRAM_FILE
+} from "./packet.js";
 
 const programEdgeKindSchema = z.enum([
   "sequence",
@@ -105,6 +110,7 @@ export const workflowProgramSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   description: z.string().optional(),
+  profile: workflowProfileSchema,
   source_sop_id: z.string().min(1),
   entry_node_id: z.string().min(1),
   result_node_id: z.string().min(1),
@@ -135,6 +141,7 @@ export function compileToWorkflowProgram(input: unknown): WorkflowProgram {
     id: `${sop.id}_program`,
     title: sop.title,
     ...(sop.description ? { description: sop.description } : {}),
+    profile: sop.profile,
     source_sop_id: sop.id,
     entry_node_id: sop.entry_node_id,
     result_node_id: sop.result_node_id,
@@ -147,12 +154,7 @@ export function compileToWorkflowProgram(input: unknown): WorkflowProgram {
     nodes: sop.nodes.map((node) => compileSopNode(sop, node)),
     edges: sop.edges.map(compileSopEdge),
     nested_processes: sop.subprocesses.map((subprocess) => compileNestedProcess(sop, subprocess)),
-    generated_outputs: [
-      ".workpath/workflow_program.json",
-      ".workpath/generated/operator-instructions.md",
-      ".workpath/generated/context-pack.json",
-      ".workpath/generated/tool-policy.json"
-    ]
+    generated_outputs: [WORKPATH_PROGRAM_FILE, ...WORKPATH_GENERATED_PACKET_FILES]
   };
   return workflowProgramSchema.parse(program);
 }

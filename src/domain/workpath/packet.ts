@@ -3,7 +3,11 @@ import { type SopGraph } from "../sop/index.js";
 import { type WorkflowProgram } from "./program.js";
 
 export const WORKPATH_PROGRAM_FILE = ".workpath/workflow_program.json";
+export const WORKPATH_HOOK_JSON_FILE = ".workpath/generated/workflow-hook.json";
+export const WORKPATH_HOOK_MARKDOWN_FILE = ".workpath/generated/workflow-hook.md";
 export const WORKPATH_GENERATED_PACKET_FILES = [
+  WORKPATH_HOOK_JSON_FILE,
+  WORKPATH_HOOK_MARKDOWN_FILE,
   ".workpath/generated/operator-instructions.md",
   ".workpath/generated/context-pack.json",
   ".workpath/generated/tool-policy.json"
@@ -45,10 +49,62 @@ export function buildWorkpathManifest(source: SopGraph, compilerVersion: string)
 
 export function buildGeneratedPacketFiles(program: WorkflowProgram): Record<string, string> {
   return {
+    [WORKPATH_HOOK_JSON_FILE]: `${JSON.stringify(buildWorkflowHook(program), null, 2)}\n`,
+    [WORKPATH_HOOK_MARKDOWN_FILE]: buildWorkflowHookMarkdown(program),
     ".workpath/generated/operator-instructions.md": buildOperatorInstructions(program),
     ".workpath/generated/context-pack.json": `${JSON.stringify(buildContextPack(program), null, 2)}\n`,
     ".workpath/generated/tool-policy.json": `${JSON.stringify(buildToolPolicy(program), null, 2)}\n`
   };
+}
+
+function buildWorkflowHook(program: WorkflowProgram) {
+  return {
+    schema_version: "1.0",
+    kind: "workpath_workflow_hook",
+    sop_id: program.source_sop_id,
+    workflow_program: WORKPATH_PROGRAM_FILE,
+    profile: program.profile,
+    runtime_boundary: program.runtime_boundary
+  };
+}
+
+function buildWorkflowHookMarkdown(program: WorkflowProgram): string {
+  const { profile } = program;
+  const lines = [
+    `# ${profile.name} Workflow Hook`,
+    "",
+    "Use this workflow as the activation contract for the agent packet.",
+    "",
+    "## Goal",
+    "",
+    profile.goal,
+    "",
+    "## Use This Workflow When",
+    "",
+    ...profile.trigger.activation_rules.map((rule) => `- ${rule}`),
+    "",
+    "## Do Not Use This Workflow When",
+    "",
+    ...profile.trigger.non_activation_rules.map((rule) => `- ${rule}`),
+    "",
+    "## Task Types",
+    "",
+    ...profile.trigger.task_types.map((taskType) => `- ${taskType}`),
+    "",
+    "## Guardrails",
+    "",
+    ...profile.guardrails.map((guardrail) => `- ${guardrail}`),
+    "",
+    "## Return These Sections",
+    "",
+    ...profile.return_contract.required_sections.map((section) => `- ${section}`),
+    "",
+    "## Entry Point",
+    "",
+    `Read ${WORKPATH_PROGRAM_FILE} before executing the workflow.`,
+    ""
+  ];
+  return `${lines.join("\n").trimEnd()}\n`;
 }
 
 function buildOperatorInstructions(program: WorkflowProgram): string {
@@ -68,6 +124,20 @@ function buildOperatorInstructions(program: WorkflowProgram): string {
     `Entry file: ${WORKPATH_PROGRAM_FILE}`,
     `Entry node: ${program.entry_node_id}`,
     `Result node: ${program.result_node_id}`,
+    `Workflow hook: ${WORKPATH_HOOK_JSON_FILE}`,
+    "",
+    "## Activation",
+    "",
+    `Goal: ${program.profile.goal}`,
+    "",
+    "Use when:",
+    ...program.profile.trigger.activation_rules.map((rule) => `- ${rule}`),
+    "",
+    "Do not use when:",
+    ...program.profile.trigger.non_activation_rules.map((rule) => `- ${rule}`),
+    "",
+    "Return sections:",
+    ...program.profile.return_contract.required_sections.map((section) => `- ${section}`),
     "",
     "## Read Order",
     "",
@@ -158,6 +228,11 @@ function buildContextPack(program: WorkflowProgram) {
     default_privacy: program.default_privacy,
     static_context: [
       {
+        id: "workflow_hook",
+        path: WORKPATH_HOOK_JSON_FILE,
+        purpose: "Activation rules, non-activation rules, guardrails, and return contract."
+      },
+      {
         id: "workflow_program",
         path: WORKPATH_PROGRAM_FILE,
         purpose: "Canonical machine-readable workflow contract."
@@ -173,6 +248,8 @@ function buildContextPack(program: WorkflowProgram) {
         purpose: "Evidence, handoff, task, and runtime JSONL records."
       }
     ],
+    task_types: program.profile.trigger.task_types,
+    activation_rules: program.profile.trigger.activation_rules,
     operation_inputs: program.nested_processes.flatMap((process) =>
       process.operations
         .filter((operation) => operation.action.kind === "agent_fanout")

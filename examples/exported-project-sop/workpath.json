@@ -9,6 +9,8 @@
   "read_order": [
     "workpath.json",
     ".workpath/workflow_program.json",
+    ".workpath/generated/workflow-hook.json",
+    ".workpath/generated/workflow-hook.md",
     ".workpath/generated/operator-instructions.md",
     ".workpath/generated/context-pack.json",
     ".workpath/generated/tool-policy.json",

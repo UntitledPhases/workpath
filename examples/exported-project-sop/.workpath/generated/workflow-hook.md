@@ -1,0 +1,46 @@
+# Project SOP Workflow Hook
+
+Use this workflow as the activation contract for the agent packet.
+
+## Goal
+
+Turn vague or multi-phase user intent into a structured, evidence-backed workflow result without forcing the operator to manually restate the process.
+
+## Use This Workflow When
+
+- Use when the user asks for planning, implementation, repo work, research-backed decisions, or workflow design that needs more than a tiny direct answer.
+- Use when the task benefits from explicit intent extraction, local context inspection, phased work, verification, or handoff discipline.
+- Use when the operator asks to use Project SOP, the autonomy loop, a rigorous protocol, or a forward/reverse planning pass.
+
+## Do Not Use This Workflow When
+
+- Do not use for one-command lookups, trivial edits, or purely conversational answers.
+- Do not use when the user explicitly asks for no planning or only wants a quick answer.
+- Do not use to persist secrets, raw transcripts, or broad personal filesystem indexes.
+
+## Task Types
+
+- ambiguous_project
+- research_heavy_decision
+- multi_phase_build
+- workflow_design
+
+## Guardrails
+
+- Inspect local files and existing contracts before asking questions that the environment can answer.
+- Research first when current external facts, APIs, pricing, tools, security, law, or community practice affect the work.
+- Run a reverse pass before execution and revise the plan when material holes are found.
+- Verify with tests, builds, validation commands, screenshots, or generated evidence appropriate to the slice.
+- Return concise outcomes, evidence, risks, and the next useful slice.
+
+## Return These Sections
+
+- summary
+- files_changed
+- verification
+- risks
+- next_slice
+
+## Entry Point
+
+Read .workpath/workflow_program.json before executing the workflow.

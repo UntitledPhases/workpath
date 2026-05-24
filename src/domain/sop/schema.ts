@@ -56,6 +56,20 @@ export const reasoningLevelSchema = z.enum([
   "high"
 ]);
 
+export const workflowProfileSchema = z.object({
+  name: z.string().min(1),
+  goal: z.string().min(1),
+  trigger: z.object({
+    task_types: z.array(z.string().min(1)).min(1),
+    activation_rules: z.array(z.string().min(1)).min(1),
+    non_activation_rules: z.array(z.string().min(1)).default([])
+  }),
+  guardrails: z.array(z.string().min(1)).default([]),
+  return_contract: z.object({
+    required_sections: z.array(z.string().min(1)).min(1)
+  })
+});
+
 const workerProfileSchema = z.object({
   model_tier: modelTierSchema,
   reasoning: reasoningLevelSchema.optional(),
@@ -204,6 +218,7 @@ export const sopGraphSchema = z
     id: z.string().min(1).regex(/^[A-Za-z][A-Za-z0-9_-]*$/),
     title: z.string().min(1),
     description: z.string().optional(),
+    profile: workflowProfileSchema,
     entry_node_id: z.string().min(1),
     result_node_id: z.string().min(1),
     default_privacy: privacyClassificationSchema.default("internal"),
@@ -434,6 +449,7 @@ export type EdgeKind = z.infer<typeof edgeKindSchema>;
 export type SubprocessEdgeKind = z.infer<typeof subprocessEdgeKindSchema>;
 export type ModelTier = z.infer<typeof modelTierSchema>;
 export type ReasoningLevel = z.infer<typeof reasoningLevelSchema>;
+export type WorkflowProfile = z.infer<typeof workflowProfileSchema>;
 export type OperationAction = z.infer<typeof operationActionSchema>;
 export type SopNode = z.infer<typeof sopNodeSchema>;
 export type StepNode = z.infer<typeof stepNodeSchema>;

@@ -12,7 +12,8 @@ import {
   type SopSelection,
   type StepModule,
   type StepNode,
-  type SubprocessNode
+  type SubprocessNode,
+  type WorkflowProfile
 } from "../../domain/sop/index.js";
 
 interface SopInspectorProps {
@@ -20,6 +21,7 @@ interface SopInspectorProps {
   onDeleteActivity: (parentStepId: string, activityId: string) => void;
   onMoveActivity: (parentStepId: string, activityId: string, direction: -1 | 1) => void;
   onUpdateNode: (nodeId: string, updater: (node: SopNode) => SopNode) => void;
+  onUpdateProfile: (updater: (profile: WorkflowProfile) => WorkflowProfile) => void;
   onUpdateSubprocessNode: (nodeId: string, updater: (node: SubprocessNode) => SubprocessNode) => void;
   sop: SopGraph;
   selection?: SopSelection;
@@ -36,6 +38,7 @@ export function SopInspector({
   onDeleteActivity,
   onMoveActivity,
   onUpdateNode,
+  onUpdateProfile,
   onUpdateSubprocessNode,
   sop,
   selection
@@ -43,7 +46,14 @@ export function SopInspector({
   if (!selection) {
     return (
       <aside className="inspector" data-testid="sop-inspector" aria-label="Inspector">
-        <div className="inspector-empty">Select a process object to edit it.</div>
+        <div className="inspector-header">
+          <span>workflow profile</span>
+          <h2>{sop.profile.name}</h2>
+        </div>
+        <p className="inspector-profile-copy">
+          The activation layer that tells an agent when this packet should hook into a task.
+        </p>
+        <ProfileEditor profile={sop.profile} onUpdate={onUpdateProfile} />
       </aside>
     );
   }
@@ -116,6 +126,79 @@ export function SopInspector({
         ) : null}
       </div>
     </aside>
+  );
+}
+
+function ProfileEditor({
+  onUpdate,
+  profile
+}: {
+  onUpdate: (updater: (profile: WorkflowProfile) => WorkflowProfile) => void;
+  profile: WorkflowProfile;
+}) {
+  return (
+    <div className="editor-form" aria-label="Workflow profile editor">
+      <TextField label="profile_name" value={profile.name} onChange={(name) => onUpdate((current) => ({ ...current, name }))} />
+      <TextArea label="goal" value={profile.goal} onChange={(goal) => onUpdate((current) => ({ ...current, goal }))} />
+      <TextField
+        label="task_types"
+        value={profile.trigger.task_types.join(", ")}
+        onChange={(value) =>
+          onUpdate((current) => ({
+            ...current,
+            trigger: {
+              ...current.trigger,
+              task_types: csv(value)
+            }
+          }))
+        }
+      />
+      <TextArea
+        label="activation_rules"
+        value={profile.trigger.activation_rules.join("\n")}
+        onChange={(value) =>
+          onUpdate((current) => ({
+            ...current,
+            trigger: {
+              ...current.trigger,
+              activation_rules: lines(value)
+            }
+          }))
+        }
+      />
+      <TextArea
+        label="non_activation_rules"
+        value={profile.trigger.non_activation_rules.join("\n")}
+        onChange={(value) =>
+          onUpdate((current) => ({
+            ...current,
+            trigger: {
+              ...current.trigger,
+              non_activation_rules: lines(value)
+            }
+          }))
+        }
+      />
+      <TextField
+        label="return_sections"
+        value={profile.return_contract.required_sections.join(", ")}
+        onChange={(value) =>
+          onUpdate((current) => ({
+            ...current,
+            return_contract: {
+              required_sections: csv(value)
+            }
+          }))
+        }
+      />
+      <AdvancedFields label="Guardrails">
+        <TextArea
+          label="guardrails"
+          value={profile.guardrails.join("\n")}
+          onChange={(value) => onUpdate((current) => ({ ...current, guardrails: lines(value) }))}
+        />
+      </AdvancedFields>
+    </div>
   );
 }
 
@@ -680,6 +763,13 @@ function TextArea({ label, onChange, value }: { label: string; onChange: (value:
 function csv(value: string): string[] {
   return value
     .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function lines(value: string): string[] {
+  return value
+    .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
 }

@@ -4,25 +4,49 @@ Use this packet as the operating contract for a single AI work node.
 Entry file: .workpath/workflow_program.json
 Entry node: intent
 Result node: return
+Workflow hook: .workpath/generated/workflow-hook.json
+
+## Activation
+
+Goal: Turn vague or multi-phase user intent into a structured, evidence-backed workflow result without forcing the operator to manually restate the process.
+
+Use when:
+- Use when the user asks for planning, implementation, repo work, research-backed decisions, or workflow design that needs more than a tiny direct answer.
+- Use when the task benefits from explicit intent extraction, local context inspection, phased work, verification, or handoff discipline.
+- Use when the operator asks to use Project SOP, the autonomy loop, a rigorous protocol, or a forward/reverse planning pass.
+
+Do not use when:
+- Do not use for one-command lookups, trivial edits, or purely conversational answers.
+- Do not use when the user explicitly asks for no planning or only wants a quick answer.
+- Do not use to persist secrets, raw transcripts, or broad personal filesystem indexes.
+
+Return sections:
+- summary
+- files_changed
+- verification
+- risks
+- next_slice
 
 ## Read Order
 
 1. workpath.json
 2. .workpath/workflow_program.json
-3. .workpath/generated/operator-instructions.md
-4. .workpath/generated/context-pack.json
-5. .workpath/generated/tool-policy.json
-6. tasks.jsonl
-7. handoffs.jsonl
-8. review_gates.jsonl
-9. artifacts.jsonl
-10. privacy_boundaries.jsonl
-11. events.jsonl
-12. returns.jsonl
-13. ownership_claims.jsonl
-14. memory_candidates.jsonl
-15. sop.json
-16. canvas.json
+3. .workpath/generated/workflow-hook.json
+4. .workpath/generated/workflow-hook.md
+5. .workpath/generated/operator-instructions.md
+6. .workpath/generated/context-pack.json
+7. .workpath/generated/tool-policy.json
+8. tasks.jsonl
+9. handoffs.jsonl
+10. review_gates.jsonl
+11. artifacts.jsonl
+12. privacy_boundaries.jsonl
+13. events.jsonl
+14. returns.jsonl
+15. ownership_claims.jsonl
+16. memory_candidates.jsonl
+17. sop.json
+18. canvas.json
 
 ## Top-Level Flow
 

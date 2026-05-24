@@ -9,6 +9,8 @@ Ideate-compatible evidence/audit bundle.
 
 ```text
 author sop.json -> compile .workpath/workflow_program.json
+                -> compile .workpath/generated/workflow-hook.json
+                -> compile .workpath/generated/workflow-hook.md
                 -> compile .workpath/generated/operator-instructions.md
                 -> compile .workpath/generated/context-pack.json
                 -> compile .workpath/generated/tool-policy.json
@@ -26,8 +28,8 @@ the native SOP draft. The canvas uses a two-level nested-process grammar: the
 overview shows only lifecycle process steps, while opening a step zooms into a
 large process frame containing that step's child workflow and attached gates,
 evidence, or handoff contracts. The side rail edits selected objects and
-compiles the current draft into a downloadable bundle that includes
-`.workpath/workflow_program.json` plus generated packet files.
+compiles the current draft into a downloadable bundle that includes a workflow
+hook, `.workpath/workflow_program.json`, and generated packet files.
 
 ```powershell
 npm install
@@ -57,6 +59,8 @@ artifact, not the authoring source.
 - `nodes` stores Ideate-compatible process steps, evidence, review gates, and handoffs.
 - `edges` stores the export-facing relationships needed by the compiler.
 - `subprocesses` stores nested process definitions keyed by `parent_step_id`.
+- `profile` stores the workflow hook: when to activate the packet, when not to,
+  the workflow goal, guardrails, and the return sections expected from the agent.
 - `action` on nested process activities stores executable operation semantics.
   Slice 4b supports `activity`, `agent_fanout`, and `synthesis`.
 - Overview rendering shows only top-level step sequence.
@@ -79,6 +83,8 @@ artifact, not the authoring source.
 - Slice 4b turns the Research subprocess into the first real programmable
   behavior path: `research_breadth_agents` can fan out to configurable cheap
   workers, then hand results to a synthesis operation.
+- Slice 4c adds Workflow Profile v1: activation/non-activation rules, workflow
+  goal, guardrails, return contract, and generated workflow hook JSON/Markdown.
 
 ## Boundary
 
@@ -95,12 +101,11 @@ that graph into an agent packet plus validated evidence records.
 - Slice 3 complete: editable draft state, structured inspector editing, nested
   process activity operations, drag-persisted canvas positions, and browser ZIP
   export.
-- Slice 4a complete: workflow program export and simplified profile-first
-  inspector controls.
+- Slice 4a complete: workflow program export.
 - Slice 4b complete: Research fanout packet export with structured operation
   actions, generated operator instructions, generated context pack, and
   generated tool policy.
-- Slice 4: explicit decision/agent-group/context-pack nodes, templates,
+- Future Slice 4d: explicit decision/agent-group/context-pack nodes, templates,
   stronger validation UX, generated handoff Markdown, JSONL schemas, and
   publish-readiness pass.
 

@@ -12,6 +12,15 @@ describe("Workflow program compiler", () => {
     expect(program).toMatchObject({
       kind: "workflow_program",
       source_sop_id: "sop_project_loop",
+      profile: {
+        name: "Project SOP",
+        trigger: {
+          task_types: ["ambiguous_project", "research_heavy_decision", "multi_phase_build", "workflow_design"]
+        },
+        return_contract: {
+          required_sections: ["summary", "files_changed", "verification", "risks", "next_slice"]
+        }
+      },
       runtime_boundary: {
         mode: "external_runtime",
         stores_restricted_data: false,

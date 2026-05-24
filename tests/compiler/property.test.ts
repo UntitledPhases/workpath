@@ -14,6 +14,19 @@ function simpleSop(title: string): SopGraph {
     kind: "single_node_sop",
     id: `sop_${clean}`,
     title,
+    profile: {
+      name: title,
+      goal: "Run a simple generated workflow.",
+      trigger: {
+        task_types: ["generated_test"],
+        activation_rules: ["Use for generated property-test workflows."],
+        non_activation_rules: ["Do not use outside compiler property tests."]
+      },
+      guardrails: ["Keep the generated workflow bounded."],
+      return_contract: {
+        required_sections: ["summary"]
+      }
+    },
     entry_node_id: "intent",
     result_node_id: "return",
     default_privacy: "internal",

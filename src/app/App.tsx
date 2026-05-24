@@ -12,6 +12,7 @@ import {
   type SopGraph,
   type SopNode,
   type SubprocessNode,
+  type WorkflowProfile,
   updateCanvasPosition,
   updateSopNode,
   updateSubprocessNode
@@ -82,6 +83,13 @@ export function App() {
 
   function handleUpdateSubprocessNode(nodeId: string, updater: (node: SubprocessNode) => SubprocessNode) {
     setDraftSop((current) => updateSubprocessNode(current, nodeId, updater));
+  }
+
+  function handleUpdateProfile(updater: (profile: WorkflowProfile) => WorkflowProfile) {
+    setDraftSop((current) => ({
+      ...current,
+      profile: updater(current.profile)
+    }));
   }
 
   function handleAddActivity(parentStepId: string) {
@@ -165,6 +173,7 @@ export function App() {
             onDeleteActivity={handleDeleteActivity}
             onMoveActivity={handleMoveActivity}
             onUpdateNode={handleUpdateNode}
+            onUpdateProfile={handleUpdateProfile}
             onUpdateSubprocessNode={handleUpdateSubprocessNode}
             sop={draftSop}
             selection={selected}

@@ -22,7 +22,11 @@ Workpath Slice 1 concern.
 
 Workpath also compiles native SOP graphs into an agent packet. The packet
 includes `.workpath/workflow_program.json` as the canonical control contract and
-generated `.workpath/generated/*` files for operator instructions, context
-loading, and tool policy. Nested process activities with `action.kind:
-"agent_fanout"` or `action.kind: "synthesis"` preserve behavior in the workflow
-program and in the generated instructions.
+generated `.workpath/generated/*` files for workflow activation, operator
+instructions, context loading, and tool policy. The native `profile` block
+compiles into `.workpath/generated/workflow-hook.json` and
+`.workpath/generated/workflow-hook.md`, so downstream agents can decide when the
+packet should hook into a request and what return sections are required. Nested
+process activities with `action.kind: "agent_fanout"` or `action.kind:
+"synthesis"` preserve behavior in the workflow program and in the generated
+instructions.
