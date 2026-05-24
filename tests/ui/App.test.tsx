@@ -248,4 +248,28 @@ describe("App", () => {
     );
     expect(screen.getByTestId("export-panel").textContent).toContain("- proof");
   });
+
+  it("keeps the simple or advanced inspector mode global across selections", async () => {
+    const { container } = render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Advanced view" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select boundary: Worker handoff" }));
+
+    expect((screen.getByLabelText("denied_paths") as HTMLInputElement).value).toBe(".env, .ssh/**");
+
+    const pane = container.querySelector(".react-flow__pane");
+    if (!pane) {
+      throw new Error("Missing React Flow pane");
+    }
+    fireEvent.click(pane);
+
+    expect((screen.getByLabelText("task_types") as HTMLInputElement).value).toBe(
+      "ambiguous_project, research_heavy_decision, multi_phase_build, workflow_design"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Simple view" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select boundary: Worker handoff" }));
+
+    expect(screen.queryByLabelText("denied_paths")).toBeNull();
+  });
 });

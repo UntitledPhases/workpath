@@ -20,7 +20,7 @@ import {
 import { SopCanvas } from "../ui/canvas/SopCanvas.js";
 import { type CanvasScope } from "../ui/canvas/flowModel.js";
 import { ExportPanel } from "../ui/side-panel/ExportPanel.js";
-import { SopInspector } from "../ui/side-panel/SopInspector.js";
+import { type InspectorMode, InspectorModeToggle, SopInspector } from "../ui/side-panel/SopInspector.js";
 
 const MODULE_LEGEND = [
   { label: "Intent", color: "#2563eb" },
@@ -34,6 +34,7 @@ const MODULE_LEGEND = [
 export function App() {
   const initialState = useMemo(() => initialAppState(), []);
   const [draftSop, setDraftSop] = useState<SopGraph>(() => cloneSop(seedSop));
+  const [inspectorMode, setInspectorMode] = useState<InspectorMode>("simple");
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(initialState.selectedNodeId);
   const [viewStepId, setViewStepId] = useState<string | undefined>(initialState.viewStepId);
   const validation = useMemo(() => sopGraphSchema.safeParse(draftSop), [draftSop]);
@@ -168,7 +169,12 @@ export function App() {
           onSelectNode={handleSelectNode}
         />
         <div className="side-rail">
+          <section className="global-inspector-mode" aria-label="Global inspector mode">
+            <span>Authoring view</span>
+            <InspectorModeToggle mode={inspectorMode} onChange={setInspectorMode} />
+          </section>
           <SopInspector
+            mode={inspectorMode}
             onAddActivity={handleAddActivity}
             onDeleteActivity={handleDeleteActivity}
             onMoveActivity={handleMoveActivity}

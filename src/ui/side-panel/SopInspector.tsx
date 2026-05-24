@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
 
 import {
   type BoundaryNode,
@@ -23,6 +23,7 @@ interface SopInspectorProps {
   onUpdateNode: (nodeId: string, updater: (node: SopNode) => SopNode) => void;
   onUpdateProfile: (updater: (profile: WorkflowProfile) => WorkflowProfile) => void;
   onUpdateSubprocessNode: (nodeId: string, updater: (node: SubprocessNode) => SubprocessNode) => void;
+  mode: InspectorMode;
   sop: SopGraph;
   selection?: SopSelection;
 }
@@ -32,9 +33,10 @@ const MODULE_OPTIONS: StepModule[] = ["intent", "research", "plan", "execute", "
 const GATE_OPTIONS: GateNode["gate_kind"][] = ["reverse_pass", "approval", "tests", "privacy"];
 const MODEL_TIER_OPTIONS: ModelTier[] = ["cheap", "medium", "expensive", "local", "custom"];
 const REASONING_OPTIONS: ReasoningLevel[] = ["none", "low", "medium", "high"];
-type InspectorMode = "simple" | "advanced";
+export type InspectorMode = "simple" | "advanced";
 
 export function SopInspector({
+  mode,
   onAddActivity,
   onDeleteActivity,
   onMoveActivity,
@@ -44,8 +46,6 @@ export function SopInspector({
   sop,
   selection
 }: SopInspectorProps) {
-  const [mode, setMode] = useState<InspectorMode>("simple");
-
   if (!selection) {
     return (
       <aside className="inspector" data-testid="sop-inspector" aria-label="Inspector">
@@ -56,7 +56,6 @@ export function SopInspector({
         <p className="inspector-profile-copy">
           The activation layer that tells an agent when this packet should hook into a task.
         </p>
-        <InspectorModeToggle mode={mode} onChange={setMode} />
         <ProfileEditor mode={mode} profile={sop.profile} onUpdate={onUpdateProfile} />
       </aside>
     );
@@ -71,7 +70,6 @@ export function SopInspector({
         <h2>{node.title}</h2>
       </div>
       <p className="inspector-profile-copy">{profileCopy(selection)}</p>
-      <InspectorModeToggle mode={mode} onChange={setMode} />
       {mode === "advanced" ? <RecordDetails node={node} selection={selection} sop={sop} /> : null}
       <div className="inspector-editor">
         {selection.kind === "sop_node" ? (
@@ -180,7 +178,7 @@ function ProfileEditor({
   );
 }
 
-function InspectorModeToggle({
+export function InspectorModeToggle({
   mode,
   onChange
 }: {
