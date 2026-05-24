@@ -10,7 +10,7 @@ export const privacyClassificationSchema = z.enum([
 
 const provenanceSchema = z.record(z.string(), z.unknown());
 
-export const ideateRecordBaseSchema = z.object({
+export const auditJsonlRecordBaseSchema = z.object({
   schema_version: z.literal("1.0"),
   artifact_type: z.string().min(1),
   id: z.string().min(1),
@@ -19,7 +19,7 @@ export const ideateRecordBaseSchema = z.object({
   privacy_classification: privacyClassificationSchema
 });
 
-export const ideateTaskSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlTaskSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("task"),
   title: z.string().min(1),
   status: z.enum(["planned", "active", "blocked", "done", "abandoned"]),
@@ -28,7 +28,7 @@ export const ideateTaskSchema = ideateRecordBaseSchema.extend({
   review_gate_ids: z.array(z.string()).default([])
 });
 
-export const ideateArtifactSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlArtifactSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("artifact"),
   artifact_kind: z.string().min(1),
   required: z.boolean().optional(),
@@ -36,7 +36,7 @@ export const ideateArtifactSchema = ideateRecordBaseSchema.extend({
   command: z.string().optional()
 });
 
-export const ideateReviewGateSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlReviewGateSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("review_gate"),
   task_id: z.string().min(1),
   gate_type: z.string().min(1),
@@ -45,7 +45,7 @@ export const ideateReviewGateSchema = ideateRecordBaseSchema.extend({
   evidence: z.array(z.string().min(1)).default([])
 });
 
-export const ideateHandoffSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlHandoffSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("handoff"),
   task_id: z.string().min(1),
   from: z.string().min(1),
@@ -57,20 +57,20 @@ export const ideateHandoffSchema = ideateRecordBaseSchema.extend({
   evidence_required: z.array(z.string().min(1)).min(1)
 });
 
-export const ideatePrivacyBoundarySchema = ideateRecordBaseSchema.extend({
+export const auditJsonlPrivacyBoundarySchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("privacy_boundary"),
   scope: z.string().min(1),
   policy: z.string().min(1)
 });
 
-export const ideateEventSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlEventSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("event"),
   event_type: z.string().min(1),
   task_id: z.string().min(1).optional(),
   sequence: z.number().int().nonnegative().optional()
 });
 
-export const ideateReturnResumeSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlReturnResumeSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("return_resume"),
   task_id: z.string().min(1),
   handoff_id: z.string().min(1).optional(),
@@ -78,7 +78,7 @@ export const ideateReturnResumeSchema = ideateRecordBaseSchema.extend({
   next_safe_action: z.string().min(1)
 });
 
-export const ideateOwnershipClaimSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlOwnershipClaimSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("ownership_claim"),
   task_id: z.string().min(1).optional(),
   owner: z.string().min(1),
@@ -86,27 +86,27 @@ export const ideateOwnershipClaimSchema = ideateRecordBaseSchema.extend({
   coordination_id: z.string().optional()
 });
 
-export const ideateMemoryCandidateSchema = ideateRecordBaseSchema.extend({
+export const auditJsonlMemoryCandidateSchema = auditJsonlRecordBaseSchema.extend({
   artifact_type: z.literal("memory_candidate"),
   summary: z.string().min(1),
   evidence: z.array(z.string().min(1)).default([])
 });
 
-export const ideateRecordSchema = z.discriminatedUnion("artifact_type", [
-  ideateTaskSchema,
-  ideateArtifactSchema,
-  ideateReviewGateSchema,
-  ideateHandoffSchema,
-  ideatePrivacyBoundarySchema,
-  ideateEventSchema,
-  ideateReturnResumeSchema,
-  ideateOwnershipClaimSchema,
-  ideateMemoryCandidateSchema
+export const auditJsonlRecordSchema = z.discriminatedUnion("artifact_type", [
+  auditJsonlTaskSchema,
+  auditJsonlArtifactSchema,
+  auditJsonlReviewGateSchema,
+  auditJsonlHandoffSchema,
+  auditJsonlPrivacyBoundarySchema,
+  auditJsonlEventSchema,
+  auditJsonlReturnResumeSchema,
+  auditJsonlOwnershipClaimSchema,
+  auditJsonlMemoryCandidateSchema
 ]);
 
-export type IdeateTask = z.infer<typeof ideateTaskSchema>;
-export type IdeateArtifact = z.infer<typeof ideateArtifactSchema>;
-export type IdeateReviewGate = z.infer<typeof ideateReviewGateSchema>;
-export type IdeateHandoff = z.infer<typeof ideateHandoffSchema>;
-export type IdeatePrivacyBoundary = z.infer<typeof ideatePrivacyBoundarySchema>;
-export type IdeateRecord = z.infer<typeof ideateRecordSchema>;
+export type AuditJsonlTask = z.infer<typeof auditJsonlTaskSchema>;
+export type AuditJsonlArtifact = z.infer<typeof auditJsonlArtifactSchema>;
+export type AuditJsonlReviewGate = z.infer<typeof auditJsonlReviewGateSchema>;
+export type AuditJsonlHandoff = z.infer<typeof auditJsonlHandoffSchema>;
+export type AuditJsonlPrivacyBoundary = z.infer<typeof auditJsonlPrivacyBoundarySchema>;
+export type AuditJsonlRecord = z.infer<typeof auditJsonlRecordSchema>;

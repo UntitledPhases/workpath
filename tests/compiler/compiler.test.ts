@@ -4,10 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
-  compileToIdeateBundle,
+  compileToAuditJsonlBundle,
   bundleToJsonlFiles,
-  writeIdeateBundle
-} from "../../src/domain/ideate/index.js";
+  writeAuditJsonlBundle
+} from "../../src/adapters/audit-jsonl/index.js";
+import { writeWorkpathExport } from "../../src/domain/workpath/emitter.js";
 import { readSeedSop } from "../helpers.js";
 
 const OPTIONS = {
@@ -16,10 +17,10 @@ const OPTIONS = {
   exportMode: "specification" as const
 };
 
-describe("SOP to Ideate compiler", () => {
+describe("SOP to audit JSONL compiler", () => {
   it("compiles the seed SOP into the expected record counts", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
 
     expect(bundle["tasks.jsonl"]).toHaveLength(6);
     expect(bundle["review_gates.jsonl"]).toHaveLength(2);
@@ -31,7 +32,7 @@ describe("SOP to Ideate compiler", () => {
 
   it("maps produces edges into task dependencies", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
     const execute = bundle["tasks.jsonl"].find((record) => record.id === "execute");
 
     expect(execute).toMatchObject({
@@ -42,9 +43,9 @@ describe("SOP to Ideate compiler", () => {
     });
   });
 
-  it("marks every Ideate record as a Workpath specification export", async () => {
+  it("marks every audit JSONL record as a Workpath specification export", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
 
     for (const records of Object.values(bundle)) {
       for (const record of records) {
@@ -57,7 +58,7 @@ describe("SOP to Ideate compiler", () => {
 
   it("maps validates edges into review gate evidence", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
     const tests = bundle["review_gates.jsonl"].find((record) => record.id === "gate_tests");
 
     expect(tests).toMatchObject({
@@ -71,7 +72,7 @@ describe("SOP to Ideate compiler", () => {
 
   it("emits LF-only JSONL", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
     const files = bundleToJsonlFiles(bundle);
 
     expect(files["tasks.jsonl"]).not.toContain("\r");
@@ -80,22 +81,32 @@ describe("SOP to Ideate compiler", () => {
 
   it("keeps compiler output stable for the seed", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
 
     expect(bundle).toMatchSnapshot();
   });
 
-  it("writes Workpath control artifacts beside source files", async () => {
+  it("writes audit JSONL files", async () => {
     const sop = await readSeedSop();
-    const bundle = compileToIdeateBundle(sop, OPTIONS);
+    const bundle = compileToAuditJsonlBundle(sop, OPTIONS);
     const outDir = await mkdtemp(join(tmpdir(), "workpath-emitter-"));
 
     try {
-      await writeIdeateBundle(bundle, outDir, sop, {
-        includeSource: true,
-        exportMode: "specification",
-        compilerVersion: OPTIONS.compilerVersion
-      });
+      await writeAuditJsonlBundle(bundle, outDir);
+      const tasks = await readFile(join(outDir, "tasks.jsonl"), "utf8");
+
+      expect(tasks).toContain('"artifact_type":"task"');
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  });
+
+  it("writes Workpath control artifacts beside audit JSONL files", async () => {
+    const sop = await readSeedSop();
+    const outDir = await mkdtemp(join(tmpdir(), "workpath-export-"));
+
+    try {
+      await writeWorkpathExport(sop, outDir, OPTIONS);
       const manifest = JSON.parse(await readFile(join(outDir, "workpath.json"), "utf8")) as {
         entry_file: string;
         export_mode: string;

@@ -5,7 +5,7 @@ Local-first structured SOP composer for AI work nodes.
 Workpath is the visual SOP programming layer for AI work. It compiles one
 authoring graph into an agent packet: a programmable harness artifact,
 pasteable operator instructions, context/tool policy files, and an
-Ideate-compatible evidence/audit bundle.
+audit/evidence JSONL bundle.
 
 ```text
 author sop.json -> compile .workpath/workflow_program.json
@@ -14,7 +14,7 @@ author sop.json -> compile .workpath/workflow_program.json
                 -> compile .workpath/generated/operator-instructions.md
                 -> compile .workpath/generated/context-pack.json
                 -> compile .workpath/generated/tool-policy.json
-                -> compile Ideate JSONL bundle
+                -> compile audit/evidence JSONL bundle
                 -> validate with agentic-sdlc
 ```
 
@@ -46,7 +46,7 @@ agentic-sdlc visualize examples\exported-project-sop --format svg --output examp
 
 The compiler reads [examples/seed-project-sop.json](examples/seed-project-sop.json)
 and emits [examples/exported-project-sop](examples/exported-project-sop). The
-Ideate JSONL output proves the audit/evidence records validate, while
+audit JSONL output proves the evidence records validate, while
 `.workpath/workflow_program.json` preserves the programmable operating process
 for downstream agent adapters. The generated operator instructions are the
 plain-language packet a user can hand to Codex, Claude, a CLI LLM, or a future
@@ -58,7 +58,7 @@ artifact, not the authoring source.
 
 ## Workflow Grammar
 
-- `nodes` stores Ideate-compatible process steps, evidence, review gates, and handoffs.
+- `nodes` stores native Workpath process steps, evidence, review gates, and handoffs.
 - `edges` stores the export-facing relationships needed by the compiler.
 - `subprocesses` stores nested process definitions keyed by `parent_step_id`.
 - `profile` stores the workflow hook: when to activate the packet, when not to,
@@ -102,7 +102,7 @@ that graph into an agent packet plus validated evidence records.
 
 ## Slice Plan
 
-- Slice 1 complete: compiler, schemas, seed SOP, exported example, Ideate validation.
+- Slice 1 complete: compiler, schemas, seed SOP, exported example, audit JSONL validation.
 - Slice 2 complete: read-only React Flow canvas over the seed SOP.
 - Slice 2.5 complete: drilldown canvas view, gate-on-transition rendering,
   artifact docking, and handoff side-port rendering.

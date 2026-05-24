@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
-describe("Ideate integration", () => {
+describe("audit JSONL compatibility integration", () => {
   it("validates the committed exported example with agentic-sdlc", () => {
     let output = "";
     try {
@@ -20,4 +20,3 @@ describe("Ideate integration", () => {
     expect(output).toContain("PASS");
   });
 });
-

@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import fc from "fast-check";
 
 import {
-  compileToIdeateBundle,
-  ideateRecordSchema
-} from "../../src/domain/ideate/index.js";
+  compileToAuditJsonlBundle,
+  auditJsonlRecordSchema
+} from "../../src/adapters/audit-jsonl/index.js";
 import { type SopGraph } from "../../src/domain/sop/index.js";
 
 function simpleSop(title: string): SopGraph {
@@ -69,16 +69,16 @@ function simpleSop(title: string): SopGraph {
 }
 
 describe("compiler property", () => {
-  it("emits records accepted by vendored Ideate schemas", () => {
+  it("emits records accepted by audit JSONL schemas", () => {
     fc.assert(
       fc.property(fc.string({ minLength: 1, maxLength: 24 }), (title) => {
-        const bundle = compileToIdeateBundle(simpleSop(title), {
+        const bundle = compileToAuditJsonlBundle(simpleSop(title), {
           createdAt: "2026-05-20T20:00:00.000Z",
           compilerVersion: "workpath-compiler@test"
         });
         for (const records of Object.values(bundle)) {
           for (const record of records) {
-            expect(ideateRecordSchema.parse(record)).toBeTruthy();
+            expect(auditJsonlRecordSchema.parse(record)).toBeTruthy();
           }
         }
       }),

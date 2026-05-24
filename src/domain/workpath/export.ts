@@ -1,4 +1,5 @@
-import { compileToIdeateBundle, IDEATE_FILES } from "../ideate/compiler.js";
+import { compileToAuditJsonlBundle } from "../../adapters/audit-jsonl/compiler.js";
+import { bundleToJsonlFiles } from "../../adapters/audit-jsonl/files.js";
 import { type SopGraph } from "../sop/index.js";
 import {
   buildGeneratedPacketFiles,
@@ -17,15 +18,12 @@ export function buildWorkpathExportFiles(
   options: WorkpathExportOptions = {}
 ): Record<string, string> {
   const compilerVersion = options.compilerVersion ?? "workpath-compiler@0.1.0";
-  const bundle = compileToIdeateBundle(source, {
+  const bundle = compileToAuditJsonlBundle(source, {
     compilerVersion,
     createdAt: options.createdAt,
     exportMode: "specification"
   });
-  const files: Record<string, string> = {};
-  for (const fileName of IDEATE_FILES) {
-    files[fileName] = recordsToJsonl(bundle[fileName]);
-  }
+  const files = bundleToJsonlFiles(bundle);
   const program = compileToWorkflowProgram(source);
   return {
     ...files,
@@ -35,13 +33,6 @@ export function buildWorkpathExportFiles(
     "canvas.json": `${JSON.stringify(source.canvas, null, 2)}\n`,
     "workpath.json": `${JSON.stringify(buildWorkpathManifest(source, compilerVersion), null, 2)}\n`
   };
-}
-
-function recordsToJsonl(records: unknown[]): string {
-  if (!records.length) {
-    return "";
-  }
-  return records.map((record) => JSON.stringify(record)).join("\n") + "\n";
 }
 
 export function buildZip(files: Record<string, string>): Uint8Array {

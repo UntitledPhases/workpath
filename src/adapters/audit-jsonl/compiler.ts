@@ -6,18 +6,18 @@ import {
   type SopGraph,
   type StepNode,
   sopGraphSchema
-} from "../sop/schema.js";
+} from "../../domain/sop/schema.js";
 import {
-  type IdeateArtifact,
-  type IdeateHandoff,
-  type IdeatePrivacyBoundary,
-  type IdeateRecord,
-  type IdeateReviewGate,
-  type IdeateTask,
-  ideateRecordSchema
+  type AuditJsonlArtifact,
+  type AuditJsonlHandoff,
+  type AuditJsonlPrivacyBoundary,
+  type AuditJsonlRecord,
+  type AuditJsonlReviewGate,
+  type AuditJsonlTask,
+  auditJsonlRecordSchema
 } from "./schema.js";
 
-export const IDEATE_FILES = [
+export const AUDIT_JSONL_FILES = [
   "tasks.jsonl",
   "events.jsonl",
   "artifacts.jsonl",
@@ -29,9 +29,9 @@ export const IDEATE_FILES = [
   "memory_candidates.jsonl"
 ] as const;
 
-export type IdeateFileName = (typeof IDEATE_FILES)[number];
+export type AuditJsonlFileName = (typeof AUDIT_JSONL_FILES)[number];
 
-export type IdeateBundle = Record<IdeateFileName, IdeateRecord[]>;
+export type AuditJsonlBundle = Record<AuditJsonlFileName, AuditJsonlRecord[]>;
 
 export interface CompileOptions {
   createdAt?: string;
@@ -46,7 +46,7 @@ interface CompileContext {
   exportMode: "specification";
 }
 
-export function compileToIdeateBundle(input: unknown, options: CompileOptions = {}): IdeateBundle {
+export function compileToAuditJsonlBundle(input: unknown, options: CompileOptions = {}): AuditJsonlBundle {
   const sop = sopGraphSchema.parse(input);
   const context: CompileContext = {
     sop,
@@ -76,13 +76,13 @@ export function compileToIdeateBundle(input: unknown, options: CompileOptions = 
 
   for (const records of Object.values(bundle)) {
     for (const record of records) {
-      ideateRecordSchema.parse(record);
+      auditJsonlRecordSchema.parse(record);
     }
   }
   return bundle;
 }
 
-export function emptyBundle(): IdeateBundle {
+export function emptyBundle(): AuditJsonlBundle {
   return {
     "tasks.jsonl": [],
     "events.jsonl": [],
@@ -96,7 +96,7 @@ export function emptyBundle(): IdeateBundle {
   };
 }
 
-function compileStep(context: CompileContext, step: StepNode): IdeateTask {
+function compileStep(context: CompileContext, step: StepNode): AuditJsonlTask {
   const dependsOn = context.sop.edges
     .filter((edge) => edge.kind === "produces" && edge.to === step.id)
     .map((edge) => edge.from)
@@ -119,7 +119,7 @@ function compileStep(context: CompileContext, step: StepNode): IdeateTask {
   };
 }
 
-function compileEvidence(context: CompileContext, evidence: EvidenceNode): IdeateArtifact {
+function compileEvidence(context: CompileContext, evidence: EvidenceNode): AuditJsonlArtifact {
   const status = evidence.required ? "passed" : undefined;
   return {
     ...baseRecord(context, "artifact", evidence.id, evidence.privacy),
@@ -131,7 +131,7 @@ function compileEvidence(context: CompileContext, evidence: EvidenceNode): Ideat
   };
 }
 
-function compileGate(context: CompileContext, gate: GateNode): IdeateReviewGate {
+function compileGate(context: CompileContext, gate: GateNode): AuditJsonlReviewGate {
   const evidence = context.sop.edges
     .filter((edge) => edge.kind === "validates" && edge.to === gate.id)
     .map((edge) => edge.from)
@@ -148,7 +148,7 @@ function compileGate(context: CompileContext, gate: GateNode): IdeateReviewGate 
   };
 }
 
-function compileBoundary(context: CompileContext, boundary: BoundaryNode): IdeateHandoff {
+function compileBoundary(context: CompileContext, boundary: BoundaryNode): AuditJsonlHandoff {
   return {
     ...baseRecord(context, "handoff", boundary.id, boundary.privacy),
     artifact_type: "handoff",
@@ -163,7 +163,7 @@ function compileBoundary(context: CompileContext, boundary: BoundaryNode): Ideat
   };
 }
 
-function compilePrivacyBoundary(context: CompileContext): IdeatePrivacyBoundary {
+function compilePrivacyBoundary(context: CompileContext): AuditJsonlPrivacyBoundary {
   return {
     ...baseRecord(context, "privacy_boundary", `privacy_${context.sop.id}`, context.sop.default_privacy),
     artifact_type: "privacy_boundary",

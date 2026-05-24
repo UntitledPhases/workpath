@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`SOP to Ideate compiler > keeps compiler output stable for the seed 1`] = `
+exports[`SOP to audit JSONL compiler > keeps compiler output stable for the seed 1`] = `
 {
   "artifacts.jsonl": [
     {

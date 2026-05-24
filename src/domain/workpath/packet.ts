@@ -1,4 +1,4 @@
-import { IDEATE_FILES } from "../ideate/compiler.js";
+import { AUDIT_JSONL_FILES } from "../../adapters/audit-jsonl/compiler.js";
 import { type SopGraph } from "../sop/index.js";
 import { type WorkflowProgram } from "./program.js";
 
@@ -244,7 +244,7 @@ function buildContextPack(program: WorkflowProgram) {
       },
       {
         id: "audit_bundle",
-        paths: IDEATE_FILES,
+        paths: AUDIT_JSONL_FILES,
         purpose: "Evidence, handoff, task, and runtime JSONL records."
       }
     ],

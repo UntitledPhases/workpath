@@ -4,12 +4,12 @@ Workpath has four separate layers:
 
 - `src/domain/sop`: native SOP authoring model.
 - `src/domain/workpath`: workflow program and generated agent packet files.
-- `src/domain/ideate`: compiler and Ideate-compatible audit/evidence records.
+- `src/adapters/audit-jsonl`: compatibility compiler for audit/evidence records.
 - `src/ui`: React Flow projection and inspector controls.
 
 The native `sop.json` model is the source of truth. Its `profile` block is the
 workflow hook: activation rules, non-activation rules, goal, guardrails, and
-return contract. Ideate JSONL is compiler output. `.workpath/workflow_program.json`
+return contract. Audit JSONL is compatibility output. `.workpath/workflow_program.json`
 is the adapter-facing control contract. Generated packet files translate the
 workflow program into hook JSON/Markdown, human/LLM-readable instructions,
 context guidance, and tool policy. The canvas must project the SOP graph; it

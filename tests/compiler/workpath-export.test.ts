@@ -4,7 +4,7 @@ import { buildWorkpathExportFiles, buildZip } from "../../src/domain/workpath/in
 import { readSeedSop } from "../helpers.js";
 
 describe("Workpath browser export", () => {
-  it("builds the Ideate bundle plus source files from a draft SOP", async () => {
+  it("builds audit JSONL files plus Workpath source files from a draft SOP", async () => {
     const seed = await readSeedSop();
     const files = buildWorkpathExportFiles(seed, { createdAt: "2026-05-20T20:00:00.000Z" });
 
