@@ -26,6 +26,13 @@ V1 edge kinds:
 The canvas should show compact titles and shape language. Full metadata belongs
 in the side panel.
 
+The side panel uses two authoring modes:
+
+- Simple: purpose, objective, evidence, output, handoff target, and other fields
+  needed to understand behavior.
+- Advanced: IDs, privacy classification, task bindings, denied paths, evidence
+  IDs, and other compiler-facing contract details.
+
 Nested process activities can now carry action contracts. The first structured
 actions are:
 

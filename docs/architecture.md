@@ -15,6 +15,12 @@ workflow program into hook JSON/Markdown, human/LLM-readable instructions,
 context guidance, and tool policy. The canvas must project the SOP graph; it
 must not make React Flow state the domain model.
 
+The inspector deliberately separates authoring ergonomics from contract
+specificity. Simple view exposes the fields a workflow author needs to reason
+about behavior. Advanced view exposes raw IDs, privacy classification, task
+bindings, denied paths, evidence IDs, and other low-level fields used by
+compiler and adapter contracts.
+
 Compiler-first slices deliberately keep domain contracts ahead of UI concerns.
 The Research fanout path is the first vertical proof: one visual operation
 compiles into structured workflow JSON plus generated packet instructions.

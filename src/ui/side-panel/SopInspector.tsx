@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import {
   type BoundaryNode,
@@ -32,6 +32,7 @@ const MODULE_OPTIONS: StepModule[] = ["intent", "research", "plan", "execute", "
 const GATE_OPTIONS: GateNode["gate_kind"][] = ["reverse_pass", "approval", "tests", "privacy"];
 const MODEL_TIER_OPTIONS: ModelTier[] = ["cheap", "medium", "expensive", "local", "custom"];
 const REASONING_OPTIONS: ReasoningLevel[] = ["none", "low", "medium", "high"];
+type InspectorMode = "simple" | "advanced";
 
 export function SopInspector({
   onAddActivity,
@@ -43,6 +44,8 @@ export function SopInspector({
   sop,
   selection
 }: SopInspectorProps) {
+  const [mode, setMode] = useState<InspectorMode>("simple");
+
   if (!selection) {
     return (
       <aside className="inspector" data-testid="sop-inspector" aria-label="Inspector">
@@ -53,7 +56,8 @@ export function SopInspector({
         <p className="inspector-profile-copy">
           The activation layer that tells an agent when this packet should hook into a task.
         </p>
-        <ProfileEditor profile={sop.profile} onUpdate={onUpdateProfile} />
+        <InspectorModeToggle mode={mode} onChange={setMode} />
+        <ProfileEditor mode={mode} profile={sop.profile} onUpdate={onUpdateProfile} />
       </aside>
     );
   }
@@ -67,51 +71,19 @@ export function SopInspector({
         <h2>{node.title}</h2>
       </div>
       <p className="inspector-profile-copy">{profileCopy(selection)}</p>
-      <details className="metadata-panel">
-        <summary>Record details</summary>
-        <dl>
-          <Meta label="id" value={node.id} />
-          <Meta label="privacy" value={"privacy" in node && node.privacy ? node.privacy : sop.default_privacy} />
-          {selection.parentStepId && node.kind !== "step" ? <Meta label="parent_step" value={selection.parentStepId} /> : null}
-          {node.notes ? <Meta label="notes" value={node.notes} /> : null}
-          {node.kind === "step" ? <Meta label="module" value={node.module} /> : null}
-          {node.kind === "activity" ? <Meta label="role" value="nested process" /> : null}
-          {node.kind === "gate" ? (
-            <>
-              <Meta label="gate" value={node.gate_kind} />
-              <Meta label="task" value={node.task_id} />
-              <Meta label="evidence" value={node.required_evidence.join(", ")} />
-            </>
-          ) : null}
-          {node.kind === "evidence" ? (
-            <>
-              <Meta label="artifact" value={node.artifact_kind} />
-              <Meta label="required" value={String(node.required)} />
-              {node.command ? <Meta label="command" value={node.command} /> : null}
-            </>
-          ) : null}
-          {node.kind === "boundary" ? (
-            <>
-              <Meta label="task" value={node.task_id} />
-              <Meta label="to" value={node.to} />
-              <Meta label="objective" value={node.objective} />
-              <Meta label="allowed_paths" value={node.allowed_paths.join(", ")} />
-              <Meta label="denied_paths" value={node.denied_paths.join(", ")} />
-              <Meta label="return_contract" value={node.return_contract.required_fields.join(", ")} />
-              <Meta label="evidence_required" value={node.evidence_required.join(", ")} />
-            </>
-          ) : null}
-        </dl>
-      </details>
+      <InspectorModeToggle mode={mode} onChange={setMode} />
+      {mode === "advanced" ? <RecordDetails node={node} selection={selection} sop={sop} /> : null}
       <div className="inspector-editor">
         {selection.kind === "sop_node" ? (
           <NodeEditor
+            mode={mode}
             node={selection.node}
             onUpdate={(updater) => onUpdateNode(selection.node.id, updater)}
             sop={sop}
           />
         ) : (
           <ActivityEditor
+            mode={mode}
             node={selection.node}
             onDeleteActivity={onDeleteActivity}
             onMoveActivity={onMoveActivity}
@@ -130,29 +102,17 @@ export function SopInspector({
 }
 
 function ProfileEditor({
+  mode,
   onUpdate,
   profile
 }: {
+  mode: InspectorMode;
   onUpdate: (updater: (profile: WorkflowProfile) => WorkflowProfile) => void;
   profile: WorkflowProfile;
 }) {
   return (
     <div className="editor-form" aria-label="Workflow profile editor">
-      <TextField label="profile_name" value={profile.name} onChange={(name) => onUpdate((current) => ({ ...current, name }))} />
       <TextArea label="goal" value={profile.goal} onChange={(goal) => onUpdate((current) => ({ ...current, goal }))} />
-      <TextField
-        label="task_types"
-        value={profile.trigger.task_types.join(", ")}
-        onChange={(value) =>
-          onUpdate((current) => ({
-            ...current,
-            trigger: {
-              ...current.trigger,
-              task_types: csv(value)
-            }
-          }))
-        }
-      />
       <TextArea
         label="activation_rules"
         value={profile.trigger.activation_rules.join("\n")}
@@ -162,19 +122,6 @@ function ProfileEditor({
             trigger: {
               ...current.trigger,
               activation_rules: lines(value)
-            }
-          }))
-        }
-      />
-      <TextArea
-        label="non_activation_rules"
-        value={profile.trigger.non_activation_rules.join("\n")}
-        onChange={(value) =>
-          onUpdate((current) => ({
-            ...current,
-            trigger: {
-              ...current.trigger,
-              non_activation_rules: lines(value)
             }
           }))
         }
@@ -191,14 +138,125 @@ function ProfileEditor({
           }))
         }
       />
-      <AdvancedFields label="Guardrails">
+      {mode === "advanced" ? (
+        <>
+          <TextField label="profile_name" value={profile.name} onChange={(name) => onUpdate((current) => ({ ...current, name }))} />
+          <TextField
+            label="task_types"
+            value={profile.trigger.task_types.join(", ")}
+            onChange={(value) =>
+              onUpdate((current) => ({
+                ...current,
+                trigger: {
+                  ...current.trigger,
+                  task_types: csv(value)
+                }
+              }))
+            }
+          />
+          <TextArea
+            label="non_activation_rules"
+            value={profile.trigger.non_activation_rules.join("\n")}
+            onChange={(value) =>
+              onUpdate((current) => ({
+                ...current,
+                trigger: {
+                  ...current.trigger,
+                  non_activation_rules: lines(value)
+                }
+              }))
+            }
+          />
+        </>
+      ) : null}
+      {mode === "advanced" ? (
         <TextArea
           label="guardrails"
           value={profile.guardrails.join("\n")}
           onChange={(value) => onUpdate((current) => ({ ...current, guardrails: lines(value) }))}
         />
-      </AdvancedFields>
+      ) : null}
     </div>
+  );
+}
+
+function InspectorModeToggle({
+  mode,
+  onChange
+}: {
+  mode: InspectorMode;
+  onChange: (mode: InspectorMode) => void;
+}) {
+  return (
+    <div className="inspector-mode-toggle" role="group" aria-label="Inspector mode">
+      <button
+        aria-label="Simple view"
+        aria-pressed={mode === "simple"}
+        className={mode === "simple" ? "is-active" : ""}
+        type="button"
+        onClick={() => onChange("simple")}
+      >
+        Simple
+      </button>
+      <button
+        aria-label="Advanced view"
+        aria-pressed={mode === "advanced"}
+        className={mode === "advanced" ? "is-active" : ""}
+        type="button"
+        onClick={() => onChange("advanced")}
+      >
+        Advanced
+      </button>
+    </div>
+  );
+}
+
+function RecordDetails({
+  node,
+  selection,
+  sop
+}: {
+  node: SopSelection["node"];
+  selection: SopSelection;
+  sop: SopGraph;
+}) {
+  return (
+    <details className="metadata-panel">
+      <summary>Record details</summary>
+      <dl>
+        <Meta label="id" value={node.id} />
+        <Meta label="privacy" value={"privacy" in node && node.privacy ? node.privacy : sop.default_privacy} />
+        {selection.parentStepId && node.kind !== "step" ? <Meta label="parent_step" value={selection.parentStepId} /> : null}
+        {node.notes ? <Meta label="notes" value={node.notes} /> : null}
+        {node.kind === "step" ? <Meta label="module" value={node.module} /> : null}
+        {node.kind === "activity" ? <Meta label="role" value="nested process" /> : null}
+        {node.kind === "gate" ? (
+          <>
+            <Meta label="gate" value={node.gate_kind} />
+            <Meta label="task" value={node.task_id} />
+            <Meta label="evidence" value={node.required_evidence.join(", ")} />
+          </>
+        ) : null}
+        {node.kind === "evidence" ? (
+          <>
+            <Meta label="artifact" value={node.artifact_kind} />
+            <Meta label="required" value={String(node.required)} />
+            {node.command ? <Meta label="command" value={node.command} /> : null}
+          </>
+        ) : null}
+        {node.kind === "boundary" ? (
+          <>
+            <Meta label="task" value={node.task_id} />
+            <Meta label="to" value={node.to} />
+            <Meta label="objective" value={node.objective} />
+            <Meta label="allowed_paths" value={node.allowed_paths.join(", ")} />
+            <Meta label="denied_paths" value={node.denied_paths.join(", ")} />
+            <Meta label="return_contract" value={node.return_contract.required_fields.join(", ")} />
+            <Meta label="evidence_required" value={node.evidence_required.join(", ")} />
+          </>
+        ) : null}
+      </dl>
+    </details>
   );
 }
 
@@ -244,10 +302,12 @@ function profileCopy(selection: SopSelection): string {
 }
 
 function NodeEditor({
+  mode,
   node,
   onUpdate,
   sop
 }: {
+  mode: InspectorMode;
   node: SopNode;
   onUpdate: (updater: (node: SopNode) => SopNode) => void;
   sop: SopGraph;
@@ -257,23 +317,25 @@ function NodeEditor({
       <TextField label="title" maxLength={24} value={node.title} onChange={(title) => onUpdate((current) => ({ ...current, title }))} />
       <TextArea label="purpose" value={node.notes ?? ""} onChange={(notes) => onUpdate((current) => ({ ...current, notes: optional(notes) }))} />
       {node.kind === "step" ? <StepFields node={node} onUpdate={onUpdate} /> : null}
-      {node.kind === "evidence" ? <EvidenceFields node={node} onUpdate={onUpdate} /> : null}
-      {node.kind === "gate" ? <GateFields node={node} onUpdate={onUpdate} sop={sop} /> : null}
-      {node.kind === "boundary" ? <BoundaryFields node={node} onUpdate={onUpdate} sop={sop} /> : null}
-      <AdvancedFields label="Privacy">
+      {node.kind === "evidence" ? <EvidenceFields mode={mode} node={node} onUpdate={onUpdate} /> : null}
+      {node.kind === "gate" ? <GateFields mode={mode} node={node} onUpdate={onUpdate} sop={sop} /> : null}
+      {node.kind === "boundary" ? <BoundaryFields mode={mode} node={node} onUpdate={onUpdate} sop={sop} /> : null}
+      {mode === "advanced" ? (
         <PrivacyField value={node.privacy ?? ""} onChange={(privacy) => onUpdate((current) => ({ ...current, privacy }))} />
-      </AdvancedFields>
+      ) : null}
     </div>
   );
 }
 
 function ActivityEditor({
+  mode,
   node,
   onDeleteActivity,
   onMoveActivity,
   onUpdate,
   parentStepId
 }: {
+  mode: InspectorMode;
   node: SubprocessNode;
   onDeleteActivity: (parentStepId: string, activityId: string) => void;
   onMoveActivity: (parentStepId: string, activityId: string, direction: -1 | 1) => void;
@@ -284,7 +346,7 @@ function ActivityEditor({
     <div className="editor-form" aria-label="Activity editor">
       <TextField label="title" maxLength={24} value={node.title} onChange={(title) => onUpdate((current) => ({ ...current, title }))} />
       <TextArea label="purpose" value={node.notes ?? ""} onChange={(notes) => onUpdate((current) => ({ ...current, notes: optional(notes) }))} />
-      {node.action ? <OperationActionFields node={node} onUpdate={onUpdate} /> : null}
+      {node.action ? <OperationActionFields mode={mode} node={node} onUpdate={onUpdate} /> : null}
       <div className="inline-actions">
         <button type="button" onClick={() => onMoveActivity(parentStepId, node.id, -1)}>
           Move left
@@ -296,17 +358,19 @@ function ActivityEditor({
           Delete
         </button>
       </div>
-      <AdvancedFields label="Privacy">
+      {mode === "advanced" ? (
         <PrivacyField value={node.privacy ?? ""} onChange={(privacy) => onUpdate((current) => ({ ...current, privacy }))} />
-      </AdvancedFields>
+      ) : null}
     </div>
   );
 }
 
 function OperationActionFields({
+  mode,
   node,
   onUpdate
 }: {
+  mode: InspectorMode;
   node: SubprocessNode;
   onUpdate: (updater: (node: SubprocessNode) => SubprocessNode) => void;
 }) {
@@ -368,56 +432,6 @@ function OperationActionFields({
             ))}
           </select>
         </label>
-        <label className="field">
-          <span>reasoning</span>
-          <select
-            value={node.action.worker_profile.reasoning ?? "none"}
-            onChange={(event) =>
-              onUpdate((current) =>
-                current.action?.kind === "agent_fanout"
-                  ? {
-                      ...current,
-                      action: {
-                        ...current.action,
-                        worker_profile: {
-                          ...current.action.worker_profile,
-                          reasoning: event.target.value as ReasoningLevel
-                        }
-                      }
-                    }
-                  : current
-              )
-            }
-          >
-            {REASONING_OPTIONS.map((reasoning) => (
-              <option key={reasoning} value={reasoning}>
-                {reasoning}
-              </option>
-            ))}
-          </select>
-        </label>
-        <NumberField
-          label="max_concurrency"
-          min={1}
-          max={node.action.worker_count}
-          value={node.action.execution.max_concurrency ?? node.action.worker_count}
-          onChange={(max_concurrency) =>
-            onUpdate((current) =>
-              current.action?.kind === "agent_fanout"
-                ? {
-                    ...current,
-                    action: {
-                      ...current.action,
-                      execution: {
-                        ...current.action.execution,
-                        max_concurrency
-                      }
-                    }
-                  }
-                : current
-            )
-          }
-        />
         <TextField
           label="required_fields"
           value={node.action.output_contract.required_fields.join(", ")}
@@ -438,6 +452,60 @@ function OperationActionFields({
             )
           }
         />
+        {mode === "advanced" ? (
+          <>
+            <label className="field">
+              <span>reasoning</span>
+              <select
+                value={node.action.worker_profile.reasoning ?? "none"}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.action?.kind === "agent_fanout"
+                      ? {
+                          ...current,
+                          action: {
+                            ...current.action,
+                            worker_profile: {
+                              ...current.action.worker_profile,
+                              reasoning: event.target.value as ReasoningLevel
+                            }
+                          }
+                        }
+                      : current
+                  )
+                }
+              >
+                {REASONING_OPTIONS.map((reasoning) => (
+                  <option key={reasoning} value={reasoning}>
+                    {reasoning}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <NumberField
+              label="max_concurrency"
+              min={1}
+              max={node.action.worker_count}
+              value={node.action.execution.max_concurrency ?? node.action.worker_count}
+              onChange={(max_concurrency) =>
+                onUpdate((current) =>
+                  current.action?.kind === "agent_fanout"
+                    ? {
+                        ...current,
+                        action: {
+                          ...current.action,
+                          execution: {
+                            ...current.action.execution,
+                            max_concurrency
+                          }
+                        }
+                      }
+                    : current
+                )
+              }
+            />
+          </>
+        ) : null}
       </section>
     );
   }
@@ -512,9 +580,11 @@ function StepFields({ node, onUpdate }: { node: StepNode; onUpdate: (updater: (n
 }
 
 function EvidenceFields({
+  mode,
   node,
   onUpdate
 }: {
+  mode: InspectorMode;
   node: EvidenceNode;
   onUpdate: (updater: (node: SopNode) => SopNode) => void;
 }) {
@@ -529,26 +599,27 @@ function EvidenceFields({
         required
       </label>
       <TextField
+        label="artifact_kind"
+        value={node.artifact_kind}
+        onChange={(artifact_kind) => onUpdate((current) => ({ ...(current as EvidenceNode), artifact_kind }))}
+      />
+      <TextField
         label="command"
         value={node.command ?? ""}
         onChange={(command) => onUpdate((current) => ({ ...(current as EvidenceNode), command: optional(command) }))}
       />
-      <AdvancedFields>
-        <TextField
-          label="artifact_kind"
-          value={node.artifact_kind}
-          onChange={(artifact_kind) => onUpdate((current) => ({ ...(current as EvidenceNode), artifact_kind }))}
-        />
-      </AdvancedFields>
+      {mode === "advanced" ? <FieldReadout label="evidence_id" value={node.id} /> : null}
     </>
   );
 }
 
 function GateFields({
+  mode,
   node,
   onUpdate,
   sop
 }: {
+  mode: InspectorMode;
   node: GateNode;
   onUpdate: (updater: (node: SopNode) => SopNode) => void;
   sop: SopGraph;
@@ -576,18 +647,20 @@ function GateFields({
         value={node.required_evidence.join(", ")}
         onChange={(value) => onUpdate((current) => ({ ...(current as GateNode), required_evidence: csv(value) }))}
       />
-      <AdvancedFields>
+      {mode === "advanced" ? (
         <StepSelect label="task_id" onUpdate={onUpdate} steps={steps} value={node.task_id} />
-      </AdvancedFields>
+      ) : null}
     </>
   );
 }
 
 function BoundaryFields({
+  mode,
   node,
   onUpdate,
   sop
 }: {
+  mode: InspectorMode;
   node: BoundaryNode;
   onUpdate: (updater: (node: SopNode) => SopNode) => void;
   sop: SopGraph;
@@ -600,6 +673,7 @@ function BoundaryFields({
         value={node.objective}
         onChange={(objective) => onUpdate((current) => ({ ...(current as BoundaryNode), objective }))}
       />
+      <TextField label="to" value={node.to} onChange={(to) => onUpdate((current) => ({ ...(current as BoundaryNode), to }))} />
       <TextField
         label="allowed_paths"
         value={node.allowed_paths.join(", ")}
@@ -615,9 +689,9 @@ function BoundaryFields({
           }))
         }
       />
-      <AdvancedFields>
+      {mode === "advanced" ? (
+        <>
         <StepSelect label="task_id" onUpdate={onUpdate} steps={steps} value={node.task_id} />
-        <TextField label="to" value={node.to} onChange={(to) => onUpdate((current) => ({ ...(current as BoundaryNode), to }))} />
         <TextField
           label="denied_paths"
           value={node.denied_paths.join(", ")}
@@ -628,7 +702,8 @@ function BoundaryFields({
           value={node.evidence_required.join(", ")}
           onChange={(value) => onUpdate((current) => ({ ...(current as BoundaryNode), evidence_required: csv(value) }))}
         />
-      </AdvancedFields>
+        </>
+      ) : null}
     </>
   );
 }
@@ -676,6 +751,15 @@ function AdvancedFields({ children, label = "Advanced" }: { children: ReactNode;
       <summary>{label}</summary>
       <div className="advanced-fields-body">{children}</div>
     </details>
+  );
+}
+
+function FieldReadout({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="field-readout">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 

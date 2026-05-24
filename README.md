@@ -29,7 +29,9 @@ overview shows only lifecycle process steps, while opening a step zooms into a
 large process frame containing that step's child workflow and attached gates,
 evidence, or handoff contracts. The side rail edits selected objects and
 compiles the current draft into a downloadable bundle that includes a workflow
-hook, `.workpath/workflow_program.json`, and generated packet files.
+hook, `.workpath/workflow_program.json`, and generated packet files. The
+inspector defaults to Simple authoring fields, with Advanced view available for
+raw IDs, privacy, task bindings, and low-level contract details.
 
 ```powershell
 npm install
@@ -68,6 +70,10 @@ artifact, not the authoring source.
   containing its child workflow plus declared attachments.
 - Process and activity titles are capped at 24 characters so labels can live
   inside nodes; prose belongs in notes and sidebar fields.
+- The inspector has Simple and Advanced views. Simple shows workflow-author
+  fields such as purpose, objective, evidence, output, and routing intent.
+  Advanced exposes contract plumbing such as IDs, privacy classification,
+  task bindings, denied paths, and evidence IDs.
 - Strong horizontal arrows mean sequence. Softer directional connectors mean
   artifact/control relationships.
 - Gates remain first-class graph nodes, but the canvas renders mapped gates as
@@ -85,6 +91,8 @@ artifact, not the authoring source.
   workers, then hand results to a synthesis operation.
 - Slice 4c adds Workflow Profile v1: activation/non-activation rules, workflow
   goal, guardrails, return contract, and generated workflow hook JSON/Markdown.
+- Slice 4d adds Simple/Advanced inspector modes so authors see the clean workflow
+  surface first while systems engineers can still edit the compiled contract.
 
 ## Boundary
 
@@ -105,7 +113,9 @@ that graph into an agent packet plus validated evidence records.
 - Slice 4b complete: Research fanout packet export with structured operation
   actions, generated operator instructions, generated context pack, and
   generated tool policy.
-- Future Slice 4d: explicit decision/agent-group/context-pack nodes, templates,
+- Slice 4c complete: Workflow Profile v1 with generated hook JSON/Markdown.
+- Slice 4d complete: Simple/Advanced inspector modes for cleaner authoring.
+- Future Slice 4e: explicit decision/agent-group/context-pack nodes, templates,
   stronger validation UX, generated handoff Markdown, JSONL schemas, and
   publish-readiness pass.
 

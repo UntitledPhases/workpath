@@ -104,7 +104,9 @@ describe("App", () => {
     expect(screen.getByTestId("sop-inspector").textContent).toContain(
       "Clarify goal, constraints, done-state, and risk."
     );
-    expect(screen.getAllByText("internal").length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText("privacy")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Advanced view" }));
+    expect(screen.getByLabelText("privacy")).toBeTruthy();
 
     fireEvent.click(await screen.findByRole("button", { name: "Select step: Execute work" }));
 
@@ -119,10 +121,16 @@ describe("App", () => {
 
     const boundaryPanel = screen.getByTestId("sop-inspector").textContent ?? "";
     expect(boundaryPanel).toContain("Implement the scoped slice without touching unrelated files.");
-    expect(boundaryPanel).toContain("src/**, tests/**, docs/**");
-    expect(boundaryPanel).toContain(".env, .ssh/**");
-    expect(boundaryPanel).toContain("summary, files_changed, tests_run, open_risks");
-    expect(boundaryPanel).toContain("artifact_tests_passed");
+    expect((screen.getByLabelText("allowed_paths") as HTMLInputElement).value).toBe("src/**, tests/**, docs/**");
+    expect((screen.getByLabelText("return_contract") as HTMLInputElement).value).toBe(
+      "summary, files_changed, tests_run, open_risks"
+    );
+    expect(screen.queryByLabelText("denied_paths")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Advanced view" }));
+
+    expect((screen.getByLabelText("denied_paths") as HTMLInputElement).value).toBe(".env, .ssh/**");
+    expect((screen.getByLabelText("evidence_required") as HTMLInputElement).value).toBe("artifact_tests_passed");
 
     const pane = container.querySelector(".react-flow__pane");
     if (!pane) {
@@ -217,6 +225,12 @@ describe("App", () => {
     fireEvent.click(pane);
 
     expect(screen.getByTestId("sop-inspector").textContent).toContain("workflow profile");
+    expect(screen.queryByLabelText("task_types")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Advanced view" }));
+    expect((screen.getByLabelText("task_types") as HTMLInputElement).value).toBe(
+      "ambiguous_project, research_heavy_decision, multi_phase_build, workflow_design"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Simple view" }));
 
     fireEvent.change(await screen.findByLabelText("goal"), {
       target: { value: "Route messy operator requests into a bounded agent workflow." }
